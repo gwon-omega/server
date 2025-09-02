@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "ES2022", // modern JS features
+    "module": "nodenext", // allows native import/export
+    "moduleResolution": "nodenext",
+    "esModuleInterop": true, // clean import from CommonJS
+    "allowJs": true, // allow JS files too
+    "checkJs": false, // don’t check types in JS
+    "noEmitOnError": false, // compile even if type errors
+    "strict": false, // disable strict type checking
+    "skipLibCheck": true, // skip type checks for node_modules
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "dist", // compiled JS output
+    "rootDir": "src" // source folder
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules"]
+}
