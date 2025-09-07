@@ -9,6 +9,9 @@ import cartRoute from "./routes/cartRoute";
 import wishlistRoute from "./routes/wishlistRoute";
 import orderRoute from "./routes/orderRoute";
 import reviewRoute from "./routes/reviewRoute";
+import productCategoryRoute from "./routes/productCategoryRoute";
+import paymentRoute from "./routes/paymentRoute";
+import dashboardRoute from "./routes/dashboardRoute";
 
 dotenv.config();
 
@@ -28,6 +31,9 @@ app.use("/api/cart", cartRoute);
 app.use("/api/wishlist", wishlistRoute);
 app.use("/api/orders", orderRoute);
 app.use("/api/reviews", reviewRoute);
+app.use("/api/categories", productCategoryRoute);
+app.use("/api/payments", paymentRoute);
+app.use("/api/dashboard", dashboardRoute);
 
 // DB + Server
 const PORT = process.env.PORT || 5000;

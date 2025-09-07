@@ -4,12 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon server.ts"
+    "start": "nodemon server.ts",
+  "test": "pnpm exec ts-node tests/paymentService.test.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "packageManager": "pnpm@10.15.0",
+  "packageManager": "pnpm@10.15.1",
   "dependencies": {
     "axios": "^1.11.0",
     "bcrypt": "^6.0.0",
@@ -33,6 +34,7 @@
     "@types/express": "^5.0.3",
     "@types/multer": "^2.0.0",
     "@types/node": "^24.3.0",
+    "eslint": "^9.34.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
   }

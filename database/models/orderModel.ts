@@ -6,6 +6,7 @@ class Order extends Model {
   public userId!: string;
   public items!: any; // JSON array of { productId, quantity, price }
   public total!: number;
+  public totalAmount!: number; // alias field for clarity
   public status!: string;
 }
 
@@ -27,6 +28,11 @@ Order.init(
       defaultValue: [],
     },
     total: {
+      type: DataTypes.FLOAT,
+      allowNull: false,
+      defaultValue: 0,
+    },
+    totalAmount: {
       type: DataTypes.FLOAT,
       allowNull: false,
       defaultValue: 0,

@@ -38,6 +38,11 @@ User.init(
       allowNull: false,
       defaultValue: "active",
     },
+    role: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: "user",
+    },
   },
   {
     sequelize,

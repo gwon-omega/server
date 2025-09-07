@@ -6,7 +6,7 @@ export const contactMail = async (to: string, subject: string, text: string) => 
   if (!RESEND_API) throw new Error("RESEND_API_KEY not configured");
   const url = "https://api.resend.com/emails";
   const body = {
-    from: process.env.CONTACT_EMAIL || "noreply@example.com",
+    from: process.env.CONTACT_EMAIL || "codingwithjiwan@gmail.com",
     to,
     subject,
     text,

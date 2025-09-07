@@ -21,4 +21,21 @@ export const securityChecker = (req: Request, res: Response, next: NextFunction)
   }
 };
 
+export const isAuth = (req: Request, res: Response, next: NextFunction) => {
+  if ((req as any).user) return next();
+  return res.status(401).json({ message: "unauthorized" });
+};
+
+export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
+  const user = (req as any).user;
+  if (user && user.role === "admin") return next();
+  return res.status(403).json({ message: "forbidden" });
+};
+
+export const isVendor = (req: Request, res: Response, next: NextFunction) => {
+  const user = (req as any).user;
+  if (user && user.role === "vendor") return next();
+  return res.status(403).json({ message: "forbidden" });
+};
+
 export default securityChecker;
