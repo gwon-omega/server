@@ -1,19 +1,33 @@
 import sequelize from "../connection";
-import { DataTypes, Model } from "sequelize";
+import { DataTypes, Model, Optional } from "sequelize";
 
-class ForgotPassword extends Model {
+interface ForgotPasswordAttributes {
+  id: string;
+  userId: string;
+  pin: string;
+  expiresAt: Date;
+  used: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+type ForgotPasswordCreationAttributes = Optional<ForgotPasswordAttributes, "id" | "used" | "expiresAt">;
+
+class ForgotPassword extends Model<ForgotPasswordAttributes, ForgotPasswordCreationAttributes> implements ForgotPasswordAttributes {
   public id!: string;
   public userId!: string;
   public pin!: string;
   public expiresAt!: Date;
   public used!: boolean;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
 }
 
 ForgotPassword.init(
   {
     id: {
       type: DataTypes.UUID,
-      defaultValue: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       allowNull: false,
       primaryKey: true,
     },

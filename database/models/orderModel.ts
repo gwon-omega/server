@@ -1,20 +1,13 @@
 import sequelize from "../connection";
 import { DataTypes, Model } from "sequelize";
 
-class Order extends Model {
-  public orderId!: string;
-  public userId!: string;
-  public items!: any; // JSON array of { productId, quantity, price }
-  public total!: number;
-  public totalAmount!: number; // alias field for clarity
-  public status!: string;
-}
+class Order extends Model {}
 
 Order.init(
   {
     orderId: {
       type: DataTypes.UUID,
-      defaultValue: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       allowNull: false,
       primaryKey: true,
     },

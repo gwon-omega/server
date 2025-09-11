@@ -1,21 +1,13 @@
 import sequelize from "../connection";
 import { DataTypes, Model } from "sequelize";
 
-class Payment extends Model {
-  public paymentId!: string;
-  public transaction_uuid!: string;
-  public platform!: string;
-  public amount!: number;
-  public status!: string;
-  public ref_id?: string;
-  public metadata?: object;
-}
+class Payment extends Model {}
 
 Payment.init(
   {
     paymentId: {
       type: DataTypes.UUID,
-      defaultValue: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       allowNull: false,
       primaryKey: true,
     },

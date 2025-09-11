@@ -1,19 +1,13 @@
 import sequelize from "../connection";
 import { DataTypes, Model } from "sequelize";
 
-class Review extends Model {
-  public reviewId!: string;
-  public email!: string;
-  public message!: string; // JSON array of { productId, quantity, price }
-  public rating!: number;
-  public status!: string;
-}
+class Review extends Model {}
 
 Review.init(
   {
     reviewId: {
       type: DataTypes.UUID,
-      defaultValue: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       allowNull: false,
       primaryKey: true,
     },

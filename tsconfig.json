@@ -10,9 +10,9 @@
     "strict": false, // disable strict type checking
     "skipLibCheck": true, // skip type checks for node_modules
     "forceConsistentCasingInFileNames": true,
-    "outDir": "dist", // compiled JS output
-    "rootDir": "src" // source folder
+    "outDir": "dist",
+    "rootDir": "."
   },
-  "include": ["src/**/*.ts"],
+  "include": ["**/*.ts"],
   "exclude": ["node_modules"]
 }

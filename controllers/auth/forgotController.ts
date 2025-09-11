@@ -19,7 +19,7 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
     const pin = genPin();
     const expiresAt = new Date(Date.now() + PIN_TTL_MINUTES * 60 * 1000);
 
-    await ForgotPassword.create({ userId: user.userId, pin, expiresAt, used: false });
+  await ForgotPassword.create({ userId: (user as any).userId, pin, expiresAt, used: false });
 
     // send email with PIN
     try {
@@ -38,11 +38,12 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
 const findValidPinRecord = async (email: string, pin: string) => {
   const user = await User.findOne({ where: { email } });
   if (!user) return null;
-  const record = await ForgotPassword.findOne({ where: { userId: user.userId, pin }, order: [["createdAt", "DESC"]] });
+  const record = await ForgotPassword.findOne({ where: { userId: (user as any).userId, pin }, order: [["createdAt", "DESC"]] });
   if (!record) return null;
-  if (record.used) return null;
-  if (record.expiresAt.getTime() < Date.now()) return null;
-  return { user, record };
+  const r: any = record; // relaxed typing due to dynamic model fields
+  if (r.used) return null;
+  if (r.expiresAt && new Date(r.expiresAt).getTime() < Date.now()) return null;
+  return { user, record: r };
 };
 
 export const verifyPin = async (req: Request, res: Response) => {
@@ -69,8 +70,8 @@ export const resetPassword = async (req: Request, res: Response) => {
     if (!found) return res.status(400).json({ message: "Invalid or expired PIN" });
 
     const hashed = await generatePassword(newPassword);
-    await User.update({ password: hashed }, { where: { userId: found.user.userId } });
-    await ForgotPassword.update({ used: true }, { where: { id: found.record.id } });
+  await User.update({ password: hashed }, { where: { userId: (found.user as any).userId } });
+	await ForgotPassword.update({ used: true }, { where: { id: (found.record as any).id } });
 
     return res.json({ message: "Password reset successful" });
   } catch (error) {

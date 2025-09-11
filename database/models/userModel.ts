@@ -1,18 +1,33 @@
 import sequelize from "../connection";
-import { DataTypes, Model } from "sequelize";
+import { DataTypes, Model, Optional } from "sequelize";
 
-class User extends Model {
+interface UserAttributes {
+  userId: string;
+  email: string;
+  password: string;
+  phoneNumber: string;
+  imageUrl?: string | null;
+  status: string;
+  role: string;
+}
+
+type UserCreationAttributes = Optional<UserAttributes, "userId" | "imageUrl" | "status" | "role">;
+
+class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
   public userId!: string;
   public email!: string;
   public password!: string;
   public phoneNumber!: string;
+  public imageUrl!: string | null;
+  public status!: string;
+  public role!: string;
 }
 
 User.init(
   {
     userId: {
       type: DataTypes.UUID,
-      defaultValue: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       allowNull: false,
       primaryKey: true,
     },

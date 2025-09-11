@@ -1,17 +1,13 @@
 import sequelize from "../connection";
 import { DataTypes, Model } from "sequelize";
 
-class Wishlist extends Model {
-  public id!: string;
-  public userId!: string;
-  public productId!: string;
-}
+class Wishlist extends Model {}
 
 Wishlist.init(
   {
     userId: {
       type: DataTypes.UUID,
-      defaultValue: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       allowNull: false,
       primaryKey: true,
     },

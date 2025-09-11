@@ -1,9 +1,17 @@
 import sequelize from "../connection";
-import { DataTypes, Model } from "sequelize";
+import { DataTypes, Model, Optional } from "sequelize";
 
-class Cart extends Model {
+interface CartAttributes {
+  userId: string;
+  items: any[];
+  total: number;
+}
+
+type CartCreationAttributes = Optional<CartAttributes, "items" | "total">;
+
+class Cart extends Model<CartAttributes, CartCreationAttributes> implements CartAttributes {
   public userId!: string;
-  public items!: any; // JSON array of { productId, quantity, price }
+  public items!: any[];
   public total!: number;
 }
 
@@ -11,7 +19,7 @@ Cart.init(
   {
     userId: {
       type: DataTypes.UUID,
-      defaultValue: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       allowNull: false,
       primaryKey: true,
     },

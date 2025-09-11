@@ -17,9 +17,9 @@ export const register = async (req: Request, res: Response) => {
 
 		const hashed = await bcrypt.hash(password, 10);
 		const user = await User.create({ email, password: hashed, phoneNumber });
-
-		const token = jwt.sign({ id: user.userId, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
-		return res.status(201).json({ message: "registered", user: { id: user.userId, email: user.email }, token });
+		const u: any = user; // relaxed typing for sequelize model instance
+		const token = jwt.sign({ id: u.userId, email: u.email }, JWT_SECRET, { expiresIn: "7d" });
+		return res.status(201).json({ message: "registered", user: { id: u.userId, email: u.email }, token });
 	} catch (error) {
 		console.error(error);
 		return res.status(500).json({ message: "server error" });
@@ -34,11 +34,11 @@ export const login = async (req: Request, res: Response) => {
 		const user = await User.findOne({ where: { email } });
 		if (!user) return res.status(401).json({ message: "Invalid credentials" });
 
-		const ok = await bcrypt.compare(password, user.password);
+		const u: any = user;
+		const ok = await bcrypt.compare(password, u.password);
 		if (!ok) return res.status(401).json({ message: "Invalid credentials" });
-
-		const token = jwt.sign({ id: user.userId, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
-		return res.json({ message: "ok", token, user: { id: user.userId, email: user.email } });
+		const token = jwt.sign({ id: u.userId, email: u.email }, JWT_SECRET, { expiresIn: "7d" });
+		return res.json({ message: "ok", token, user: { id: u.userId, email: u.email } });
 	} catch (error) {
 		console.error(error);
 		return res.status(500).json({ message: "server error" });
@@ -64,7 +64,7 @@ export const profile = async (req: Request, res: Response) => {
 		if (!auth) return res.status(401).json({ message: "No token" });
 		const token = auth.replace("Bearer ", "");
 		const payload: any = jwt.verify(token, JWT_SECRET);
-		const user = await User.findByPk(payload.userId, { attributes: { exclude: ["password"] } });
+		const user = await User.findByPk(payload.id, { attributes: { exclude: ["password"] } });
 		if (!user) return res.status(404).json({ message: "User not found" });
 		return res.json({ user });
 	} catch (error) {

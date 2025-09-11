@@ -23,7 +23,7 @@ export async function connectDB(options?: { sync?: boolean }) {
     console.log("✅ Database connection established successfully.");
     if (options?.sync) {
       // sync is potentially destructive in production; only run explicitly
-      await sequelize.sync({ alter: false });
+      await sequelize.sync({ alter: true });
       console.log("✅ Database synchronized successfully.");
     }
   } catch (error) {

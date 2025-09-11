@@ -46,7 +46,7 @@ export const updateProduct = async (req: Request, res: Response) => {
     const data: any = { ...(req.body || {}) };
     const fileUrl = getFileUrl(req.file);
     if (fileUrl) data.productImage = fileUrl;
-    const [, [updated]] = await Product.update(data, { where: { id: req.params.id }, returning: true });
+  const [, [updated]] = await Product.update(data, { where: { productId: req.params.id }, returning: true });
     if (!updated) return res.status(404).json({ message: "not found" });
     return res.json({ message: "updated", product: updated });
   } catch (error) {
@@ -57,7 +57,7 @@ export const updateProduct = async (req: Request, res: Response) => {
 
 export const deleteProduct = async (req: Request, res: Response) => {
   try {
-    const count = await Product.destroy({ where: { id: req.params.id } });
+  const count = await Product.destroy({ where: { productId: req.params.id } });
     if (!count) return res.status(404).json({ message: "not found" });
     return res.json({ message: "deleted" });
   } catch (error) {

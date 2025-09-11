@@ -7,8 +7,9 @@ import { Op } from "sequelize";
 
 // Helper to compute discounted price
 const computeItemPrice = (product: any) => {
-  const base = product.productPrice || 0;
-  const discount = product.productDiscount || 0; // percentage (0-100)
+  const base = Number(product.productPrice) || 0;
+  let discount = Number(product.productDiscount) || 0; // percentage
+  if (discount < 0) discount = 0; if (discount > 100) discount = 100; // clamp
   const price = base - (base * discount) / 100;
   return parseFloat(price.toFixed(2));
 };
@@ -23,20 +24,21 @@ export const checkout = async (req: Request, res: Response) => {
   const t = await sequelize.transaction();
   try {
     const cart = await Cart.findOne({ where: { userId }, transaction: t, lock: t.LOCK.UPDATE });
-    if (!cart || !Array.isArray(cart.items) || cart.items.length === 0) {
+  const c: any = cart as any;
+  if (!c || !Array.isArray(c.items) || c.items.length === 0) {
       await t.rollback();
       return res.status(400).json({ message: "cart empty" });
     }
 
     // Load all products present in cart
-    const productIds = cart.items.map((i: any) => i.productId);
+  const productIds = c.items.map((i: any) => i.productId);
   const products = await Product.findAll({ where: { productId: { [Op.in]: productIds } }, transaction: t, lock: t.LOCK.UPDATE });
     const productMap = new Map(products.map((p: any) => [p.productId, p]));
 
     // Validate inventory & build order items
     const orderItems: any[] = [];
     let total = 0;
-    for (const line of cart.items) {
+  for (const line of c.items) {
       const product = productMap.get(line.productId);
       if (!product) {
         await t.rollback();
@@ -76,9 +78,9 @@ export const checkout = async (req: Request, res: Response) => {
     );
 
     // Clear cart
-    cart.items = [];
-    cart.total = 0;
-    await cart.save({ transaction: t });
+  c.items = [];
+  c.total = 0;
+  await c.save({ transaction: t });
 
     await t.commit();
 
