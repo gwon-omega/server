@@ -7,6 +7,7 @@
     "start": "nodemon server.ts",
   "seed:categories": "ts-node scripts/seedCategories.ts",
   "seed:users": "ts-node scripts/seedUsers.ts",
+  "seed:products": "ts-node scripts/seedProducts.ts",
     "test": "pnpm exec ts-node tests/paymentService.test.ts"
   },
   "keywords": [],

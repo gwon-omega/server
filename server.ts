@@ -14,6 +14,7 @@ import paymentRoute from "./routes/paymentRoute";
 import dashboardRoute from "./routes/dashboardRoute";
 import checkoutRoute from "./routes/checkoutRoute";
 import contactRoute from "./routes/contactRoute";
+import couponRoute from "./routes/couponRoute";
 import ProductCategory from "./database/models/productCategoryModel";
 import { seedCategories } from "./scripts/seedCategories";
 
@@ -35,11 +36,14 @@ app.use("/api/cart", cartRoute);
 app.use("/api/wishlist", wishlistRoute);
 app.use("/api/orders", orderRoute);
 app.use("/api/reviews", reviewRoute);
+// Backward compatibility: expose both /categories and /product-categories
 app.use("/api/categories", productCategoryRoute);
+app.use("/api/product-categories", productCategoryRoute);
 app.use("/api/payments", paymentRoute);
 app.use("/api/dashboard", dashboardRoute);
 app.use("/api/checkout", checkoutRoute);
 app.use("/api/contact", contactRoute);
+app.use("/api/coupons", couponRoute);
 
 // DB + Server
 const PORT = process.env.PORT || 5000;
