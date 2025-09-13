@@ -61,6 +61,11 @@ Product.init(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    status: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: "enabled", // enabled | disabled
+    },
   },
   {
     sequelize,

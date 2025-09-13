@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
-import { Op } from "sequelize";
+import { Op, fn, col, literal } from "sequelize";
 import Product from "../database/models/productModel";
+import Review from "../database/models/reviewModel";
 
 const getFileUrl = (file: Express.Multer.File | undefined) => {
   if (!file) return undefined;
@@ -80,6 +81,53 @@ export const deleteProduct = async (req: Request, res: Response) => {
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Aggregated product summary (avg rating, review count) for enabled products only
+export const getProductSummaries = async (req: Request, res: Response) => {
+  try {
+    // Use scalar subqueries to avoid complex GROUP BY issues across dialects
+    const products = await Product.findAll({
+      where: { status: 'enabled' },
+      attributes: [
+        'productId',
+        'productName',
+        'productPrice',
+        'productDiscount',
+        'imageUrl',
+        'createdAt',
+        'categoryId',
+        [
+          literal(`(
+            SELECT COALESCE(AVG(r."rating"),0)
+            FROM reviews r
+            WHERE r."productId" = "Product"."productId" AND r."status" = 'published'
+          )`),
+          'avgRating'
+        ],
+        [
+          literal(`(
+            SELECT COUNT(*)
+            FROM reviews r
+            WHERE r."productId" = "Product"."productId" AND r."status" = 'published'
+          )`),
+          'reviewCount'
+        ]
+      ],
+      order: [
+        [literal(`(
+          SELECT COALESCE(AVG(r."rating"),0)
+          FROM reviews r
+          WHERE r."productId" = "Product"."productId" AND r."status" = 'published'
+        )`), 'DESC'],
+        ['createdAt', 'DESC']
+      ]
+    });
+    return res.json({ products });
+  } catch (error) {
+    console.error('getProductSummaries error:', error);
+    return res.status(500).json({ message: 'server error' });
   }
 };
 

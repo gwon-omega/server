@@ -1,5 +1,5 @@
 import * as Route from "express";
-import { validateEsewa, initiateKhalti, esewaWebhook, khaltiWebhook } from "../controllers/paymentController";
+import { validateEsewa, initiateKhalti, esewaWebhook, khaltiWebhook, listPayments } from "../controllers/paymentController";
 import { securityChecker } from "../middleware/middleware";
 
 const router = Route.Router();
@@ -11,5 +11,8 @@ router.post("/khalti/initiate", securityChecker, initiateKhalti);
 // Public webhook endpoints (providers will call these)
 router.post("/webhook/esewa", Route.json(), esewaWebhook);
 router.post("/webhook/khalti", Route.json(), khaltiWebhook);
+
+// List payments (authenticated)
+router.get("/", securityChecker, listPayments);
 
 export default router;

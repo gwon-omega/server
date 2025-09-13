@@ -9,18 +9,25 @@ interface UserAttributes {
   imageUrl?: string | null;
   status: string;
   role: string;
+  bankAccountNumber?: string | null;
+  address?: string | null;
+  mapAddress?: string | null;
 }
 
-type UserCreationAttributes = Optional<UserAttributes, "userId" | "imageUrl" | "status" | "role">;
+type UserCreationAttributes = Optional<UserAttributes, "userId" | "imageUrl" | "status" | "role" | "bankAccountNumber" | "address" | "mapAddress">;
 
 class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
-  public userId!: string;
-  public email!: string;
-  public password!: string;
-  public phoneNumber!: string;
-  public imageUrl!: string | null;
-  public status!: string;
-  public role!: string;
+  // Declare attributes for typing without creating public class fields at runtime
+  declare userId: string;
+  declare email: string;
+  declare password: string;
+  declare phoneNumber: string;
+  declare imageUrl: string | null;
+  declare status: string;
+  declare role: string;
+  declare bankAccountNumber: string | null;
+  declare address: string | null;
+  declare mapAddress: string | null;
 }
 
 User.init(
@@ -45,6 +52,18 @@ User.init(
       allowNull: false,
     },
     imageUrl: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    bankAccountNumber: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    address: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    mapAddress: {
       type: DataTypes.STRING,
       allowNull: true,
     },

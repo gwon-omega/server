@@ -1,4 +1,4 @@
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 export const generatePassword = async (plain: string) => {
   const saltRounds = parseInt(process.env.BCRYPT_SALT || "10", 10) || 10;

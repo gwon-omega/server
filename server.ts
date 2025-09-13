@@ -24,7 +24,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: "http://localhost:3000", // Adjust as needed
+  origin: ["http://localhost:3000", "http://localhost:3001"], // Support both ports
 }));
 app.use(express.json());
 

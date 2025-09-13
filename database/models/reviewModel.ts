@@ -1,5 +1,6 @@
 import sequelize from "../connection";
 import { DataTypes, Model } from "sequelize";
+import Product from "./productModel";
 
 class Review extends Model {}
 
@@ -10,6 +11,11 @@ Review.init(
       defaultValue: DataTypes.UUIDV4,
       allowNull: false,
       primaryKey: true,
+    },
+    productId: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      references: { model: 'products', key: 'productId' }
     },
     email: {
       type: DataTypes.STRING,
@@ -27,7 +33,9 @@ Review.init(
     status: {
       type: DataTypes.STRING,
       allowNull: false,
-      defaultValue: "pending",
+  // Unified status values: published | pending | rejected
+  // Default to published so newly created reviews appear immediately
+  defaultValue: "published",
     },
   },
   {
@@ -38,3 +46,11 @@ Review.init(
 );
 
 export default Review;
+
+// Associations (late binding to avoid circular issues)
+try {
+  Product.hasMany(Review, { foreignKey: 'productId', as: 'reviews' });
+  Review.belongsTo(Product, { foreignKey: 'productId', as: 'product' });
+} catch {
+  // silent if association already established during hot reload
+}
