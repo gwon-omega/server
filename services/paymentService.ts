@@ -4,7 +4,7 @@ import Payment from "../database/models/paymentModel";
 const ESEWA_VALIDATE_URL = process.env.ESEWA_VALIDATE_URL || "https://uat.esewa.com.np/epay/transrec";
 const KHALTI_INIT_URL = process.env.KHALTI_INIT_URL || "https://dev.khalti.com/api/v2/epayment/initiate/";
 
-export const validateEsewaPayment = async (payload: any) => {
+export const validateEsewaPayment = async (payload: any, userId?: string) => {
   // payload should contain transaction_uuid and product_code and total_amount
   // eSewa provides different endpoints; here we call a hypothetical validate endpoint
   try {
@@ -14,6 +14,7 @@ export const validateEsewaPayment = async (payload: any) => {
       platform: "esewa",
       amount: parseFloat(payload.total_amount || payload.amount || 0),
       status: "PENDING",
+      userId: userId || payload.userId || null,
       metadata: payload,
     });
 
@@ -34,7 +35,7 @@ export const validateEsewaPayment = async (payload: any) => {
   }
 };
 
-export const initiateKhaltiPayment = async (payload: any, secretKey?: string) => {
+export const initiateKhaltiPayment = async (payload: any, secretKey?: string, userId?: string) => {
   try {
     // Persist a Khalti INITIATED payment record
     await Payment.create({
@@ -42,6 +43,7 @@ export const initiateKhaltiPayment = async (payload: any, secretKey?: string) =>
       platform: "khalti",
       amount: parseFloat(payload.amount || 0),
       status: "INITIATED",
+      userId: userId || payload.userId || null,
       metadata: payload,
     });
 

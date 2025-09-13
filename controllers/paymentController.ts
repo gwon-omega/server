@@ -6,7 +6,8 @@ import { updatePaymentStatus } from "../services/paymentService";
 export const validateEsewa = async (req: Request, res: Response) => {
   try {
     const payload = req.body;
-    const result = await paymentService.validateEsewaPayment(payload);
+    const auth = (req as any).user;
+    const result = await paymentService.validateEsewaPayment(payload, auth?.id || auth?.userId);
     return res.json({ result });
   } catch (error) {
     console.error(error);
@@ -17,7 +18,8 @@ export const validateEsewa = async (req: Request, res: Response) => {
 export const initiateKhalti = async (req: Request, res: Response) => {
   try {
     const payload = req.body;
-    const result = await paymentService.initiateKhaltiPayment(payload);
+    const auth = (req as any).user;
+    const result = await paymentService.initiateKhaltiPayment(payload, undefined, auth?.id || auth?.userId);
     return res.json({ result });
   } catch (error) {
     console.error(error);
@@ -57,29 +59,19 @@ export const khaltiWebhook = async (req: Request, res: Response) => {
 
 export const listPayments = async (req: Request, res: Response) => {
   try {
-    const userId = (req.query.userId as string) || undefined;
-    // Simple fetch; optionally filter by metadata.userId to associate payments to a user
-    const all = await (Payment as any).findAll();
-    const rows = userId
-      ? all.filter((p: any) => {
-          const meta = p.get ? p.get("metadata") : p.metadata;
-          return meta && (meta.userId === userId || meta.user_id === userId);
-        })
-      : all;
-    // shape response minimally
-    const payments = rows.map((p: any) => {
-      const obj = p.toJSON ? p.toJSON() : p;
-      return {
-        paymentId: obj.paymentId,
-        transaction_uuid: obj.transaction_uuid,
-        platform: obj.platform,
-        amount: obj.amount,
-        status: obj.status,
-        ref_id: obj.ref_id,
-        metadata: obj.metadata || null,
-        createdAt: obj.createdAt,
-      };
-    });
+    const user = (req as any).user;
+    const { userId } = req.query as { userId?: string };
+    const where: any = {};
+
+    // If a user is logged in and not admin, force filter by their id
+    if (user && user.role !== "admin") {
+      where.userId = user.id || user.userId;
+    } else if (userId) {
+      // Admin can filter by any userId if provided
+      where.userId = userId;
+    }
+
+    const payments = await Payment.findAll({ where, order: [["createdAt", "DESC"]] });
     return res.json({ payments });
   } catch (error) {
     console.error(error);

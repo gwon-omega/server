@@ -40,6 +40,12 @@ export const getUserById = async (req: Request, res: Response) => {
 
 export const updateUser = async (req: Request, res: Response) => {
   try {
+    const auth = (req as any).user || {};
+    const isAdmin = auth?.role === "admin" || auth?.role === "superadmin";
+    const isSelf = auth?.id === req.params.id || auth?.userId === req.params.id;
+    if (!isAdmin && !isSelf) {
+      return res.status(403).json({ message: "forbidden" });
+    }
     if (req.body.password) {
       req.body.password = await bcrypt.hash(req.body.password, 10);
     }

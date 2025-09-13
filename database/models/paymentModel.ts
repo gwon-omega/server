@@ -11,6 +11,10 @@ Payment.init(
       allowNull: false,
       primaryKey: true,
     },
+    userId: {
+      type: DataTypes.UUID,
+      allowNull: true,
+    },
     transaction_uuid: {
       type: DataTypes.STRING,
       allowNull: false,

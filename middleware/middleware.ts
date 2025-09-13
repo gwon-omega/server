@@ -12,7 +12,7 @@ export const securityChecker = (req: Request, res: Response, next: NextFunction)
   if (parts.length !== 2) return res.status(401).json({ message: "unauthorized" });
   const token = parts[1];
   try {
-    const secret = process.env.JWT_SECRET || "secret";
+    const secret = process.env.JWT_SECRET || "yo_mero_secret_key_ho";
     const decoded = jwt.verify(token, secret);
     (req as any).user = decoded;
     return next();
