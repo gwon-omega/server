@@ -7,10 +7,10 @@ interface SeedResult { created: number; updated: number; skipped: number; }
 
 // Base test accounts for frontend role-based flows
 const USERS = [
-  { email: "admin@dgit.com.np", password: "admin", role: "admin", phoneNumber: "9800000000", bankAccountNumber: "1234567890123456", address: "Kathmandu, Ward 1", mapAddress: "https://maps.google.com/?q=27.7172,85.3240" },
-  { email: "user@dgit.com.np", password: "user", role: "user", phoneNumber: "9800000001", bankAccountNumber: "1234567890123457", address: "Bhaktapur, Ward 4", mapAddress: "https://maps.google.com/?q=27.6710,85.4298" },
-  { email: "moderator@dgit.com.np", password: "moderator", role: "moderator", phoneNumber: "9800000002", bankAccountNumber: "1234567890123458", address: "Lalitpur, Ward 7", mapAddress: "https://maps.google.com/?q=27.6588,85.3247" },
-  { email: "vendor@dgit.com.np", password: "vendor", role: "vendor", phoneNumber: "9800000003", bankAccountNumber: "1234567890123459", address: "Pokhara, Ward 9", mapAddress: "https://maps.google.com/?q=28.2096,83.9856" },
+  { email: "admin@dgit.com.np", password: "admin", role: "admin", phoneNumber: "9800000000", bankAccountNumber: "1234567890123456", address: "Kathmandu, Ward 1", mapAddress: "Kathmandu 44600, Nepal" },
+  { email: "user@dgit.com.np", password: "user", role: "user", phoneNumber: "9800000001", bankAccountNumber: "1234567890123457", address: "Bhaktapur, Ward 4", mapAddress: "Bhaktapur 44800, Nepal" },
+  { email: "moderator@dgit.com.np", password: "moderator", role: "moderator", phoneNumber: "9800000002", bankAccountNumber: "1234567890123458", address: "Lalitpur, Ward 7", mapAddress: "Lalitpur 44700, Nepal" },
+  { email: "vendor@dgit.com.np", password: "vendor", role: "vendor", phoneNumber: "9800000003", bankAccountNumber: "1234567890123459", address: "Pokhara, Ward 9", mapAddress: "Pokhara 33700, Nepal" },
 ];
 
 export async function seedUsers(): Promise<SeedResult> {
@@ -31,7 +31,7 @@ export async function seedUsers(): Promise<SeedResult> {
     }
     const saltRounds = Number(process.env.BCRYPT_SALT) || 10;
     const hash = await bcrypt.hash(u.password, saltRounds);
-  await User.create({ email: u.email, password: hash, role: u.role, phoneNumber: u.phoneNumber, bankAccountNumber: u.bankAccountNumber, address: u.address, mapAddress: u.mapAddress });
+    await User.create({ email: u.email, password: hash, role: u.role, phoneNumber: u.phoneNumber, bankAccountNumber: u.bankAccountNumber, address: u.address, mapAddress: u.mapAddress });
     created++;
   }
   return { created, updated, skipped: USERS.length - created - updated };

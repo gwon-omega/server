@@ -97,6 +97,7 @@ export const getProductSummaries = async (req: Request, res: Response) => {
         'productDiscount',
         'imageUrl',
         'createdAt',
+        'updatedAt',
         'categoryId',
         [
           literal(`(

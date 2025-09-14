@@ -57,6 +57,11 @@ const buildCouponPayload = (body: any, isCreate = true) => {
 export const createCoupon = async (req: Request, res: Response) => {
   try {
     const payload = buildCouponPayload(req.body, true);
+    const file = (req as any).file as Express.Multer.File | undefined;
+    if (file) {
+      const anyFile: any = file;
+      payload.imageUrl = anyFile.secure_url || anyFile.path || anyFile.location || anyFile.url || anyFile.filename;
+    }
     const exists = await Coupon.findOne({ where: { code: payload.code } });
     if (exists) return res.status(409).json({ message: "code already exists" });
     const coupon = await Coupon.create(payload);
@@ -94,6 +99,11 @@ export const updateCoupon = async (req: Request, res: Response) => {
     const coupon = await Coupon.findByPk(req.params.id);
     if (!coupon) return res.status(404).json({ message: "not found" });
     const payload = buildCouponPayload(req.body, false);
+    const file = (req as any).file as Express.Multer.File | undefined;
+    if (file) {
+      const anyFile: any = file;
+      payload.imageUrl = anyFile.secure_url || anyFile.path || anyFile.location || anyFile.url || anyFile.filename;
+    }
     // Prevent changing code to duplicate
     if (payload.code && payload.code !== (coupon as any).code) {
       const dup = await Coupon.findOne({ where: { code: payload.code } });
@@ -149,5 +159,27 @@ export const validateCoupon = async (req: Request, res: Response) => {
     return res.json({ valid: true, discountAmount, finalTotal, coupon });
   } catch (err) {
     return res.status(500).json({ valid: false, message: "failed" });
+  }
+};
+
+// Public: list currently active coupons (for Navbar/Home)
+export const getActiveCoupons = async (req: Request, res: Response) => {
+  try {
+    const limit = Number((req.query.limit as string) || 10);
+    const now = new Date();
+    const coupons = await Coupon.findAll({
+      where: {
+        status: "active",
+        [Op.and]: [
+          { [Op.or]: [{ startsAt: null }, { startsAt: { [Op.lte]: now } }] },
+          { [Op.or]: [{ expiresAt: null }, { expiresAt: { [Op.gte]: now } }] },
+        ],
+      },
+  order: [["updatedAt", "DESC"]],
+      limit: isNaN(limit) ? 10 : limit,
+    });
+    return res.json({ coupons });
+  } catch (err) {
+    return res.status(500).json({ message: "failed" });
   }
 };

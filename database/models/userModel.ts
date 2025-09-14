@@ -66,6 +66,7 @@ User.init(
     mapAddress: {
       type: DataTypes.STRING,
       allowNull: true,
+      comment: "Google Maps formatted address or map link for precise delivery",
     },
     status: {
       type: DataTypes.ENUM("active", "inactive", "banned"),

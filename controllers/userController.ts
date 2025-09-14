@@ -71,4 +71,31 @@ export const deleteUser = async (req: Request, res: Response) => {
   }
 };
 
+export const updateUserImage = async (req: Request, res: Response) => {
+  try {
+    const auth = (req as any).user || {};
+    const isAdmin = auth?.role === "admin" || auth?.role === "superadmin";
+    const isSelf = auth?.id === req.params.id || auth?.userId === req.params.id;
+    if (!isAdmin && !isSelf) {
+      return res.status(403).json({ message: "forbidden" });
+    }
+    const file: any = (req as any).file;
+    if (!file || !file.path) {
+      return res.status(400).json({ message: "image file required" });
+    }
+    const imageUrl: string = file.path;
+    const [, [updated]] = await User.update(
+      { imageUrl },
+      { where: { userId: req.params.id }, returning: true }
+    );
+    if (!updated) return res.status(404).json({ message: "not found" });
+    const u = updated.toJSON();
+    delete (u as any).password;
+    return res.json({ user: u });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "server error" });
+  }
+};
+
 export default { createUser, getUser, getUserById, updateUser, deleteUser };

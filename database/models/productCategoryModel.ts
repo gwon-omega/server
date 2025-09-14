@@ -14,8 +14,12 @@ ProductCategory.init(
     categoryName: {
       type: DataTypes.STRING,
       allowNull: false,
-  unique: true,
+      unique: true,
     },
+    imageUrl: {
+          type: DataTypes.STRING,
+          allowNull: true,
+        },
   },
   {
     sequelize,

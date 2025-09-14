@@ -23,7 +23,8 @@ export async function connectDB(options?: { sync?: boolean }) {
     console.log("✅ Database connection established successfully.");
     if (options?.sync) {
       // sync is potentially destructive in production; only run explicitly
-      await sequelize.sync({ alter: true });
+      // Skip sync for cart table since we manually migrated it
+      await sequelize.sync({ alter: true, force: false });
       console.log("✅ Database synchronized successfully.");
     }
   } catch (error) {

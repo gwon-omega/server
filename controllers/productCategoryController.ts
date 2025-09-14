@@ -4,6 +4,12 @@ import Product from "../database/models/productModel";
 
 
 // Create a new category
+const getFileUrl = (file: Express.Multer.File | undefined) => {
+  if (!file) return undefined;
+  const f: any = file as any;
+  return f.secure_url || f.path || f.location || f.url || f.filename || undefined;
+};
+
 export const createCategory = async (req: Request, res: Response) => {
   try {
     const { categoryName } = req.body;
@@ -17,7 +23,8 @@ export const createCategory = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Category already exists" });
     }
 
-    const category = await ProductCategory.create({ categoryName });
+    const imageUrl = getFileUrl((req as any).file);
+    const category = await ProductCategory.create({ categoryName, imageUrl });
     return res.status(201).json(category);
   } catch (err) {
     console.error(err);
@@ -52,4 +59,34 @@ export const getProductsByCategory = async (req: Request, res: Response) => {
   }
 };
 
-export default { createCategory, getCategories, getProductsByCategory };
+export const updateCategory = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params as any;
+    const { categoryName } = req.body || {};
+    const category = await ProductCategory.findByPk(id);
+    if (!category) return res.status(404).json({ message: "not found" });
+    const patch: any = {};
+    if (categoryName) patch.categoryName = categoryName;
+    const imageUrl = getFileUrl((req as any).file);
+    if (imageUrl) patch.imageUrl = imageUrl;
+    await category.update(patch);
+    return res.json(category);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const deleteCategory = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params as any;
+    const count = await ProductCategory.destroy({ where: { categoryId: id } });
+    if (!count) return res.status(404).json({ message: "not found" });
+    return res.json({ message: "deleted" });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+export default { createCategory, getCategories, getProductsByCategory, updateCategory, deleteCategory };

@@ -15,8 +15,10 @@ import dashboardRoute from "./routes/dashboardRoute";
 import checkoutRoute from "./routes/checkoutRoute";
 import contactRoute from "./routes/contactRoute";
 import couponRoute from "./routes/couponRoute";
+import giftcodeRoute from "./routes/giftcodeRoute";
 import ProductCategory from "./database/models/productCategoryModel";
 import { seedCategories } from "./scripts/seedCategories";
+import { migrateCartTable, migrateWishlistTable } from "./scripts/migrateCartTable";
 
 dotenv.config();
 
@@ -44,19 +46,30 @@ app.use("/api/dashboard", dashboardRoute);
 app.use("/api/checkout", checkoutRoute);
 app.use("/api/contact", contactRoute);
 app.use("/api/coupons", couponRoute);
+app.use("/api/giftcode", giftcodeRoute);
 
 // DB + Server
 const PORT = process.env.PORT || 5000;
 
 (async () => {
   try {
+    // Step 1: Run database migrations first
+    console.log("🔄 Running database migrations...");
+    await migrateCartTable();
+    await migrateWishlistTable();
+    console.log("✅ All migrations completed successfully");
+
+    // Step 2: Connect to database with sync
     await connectDB({ sync: true }); // explicit - dev only
-    // Seed categories if empty
+
+    // Step 3: Seed categories if empty
     const catCount = await ProductCategory.count();
     if (catCount === 0) {
       const result = await seedCategories();
       console.log("Seeded base categories", result);
     }
+
+    // Step 4: Start server
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
     });

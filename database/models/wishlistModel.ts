@@ -5,11 +5,15 @@ class Wishlist extends Model {}
 
 Wishlist.init(
   {
-    userId: {
+    id: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       allowNull: false,
       primaryKey: true,
+    },
+    userId: {
+      type: DataTypes.UUID,
+      allowNull: false,
     },
     productId: {
       type: DataTypes.UUID,
