@@ -13,7 +13,6 @@ export interface CouponAttributes {
   status: "active" | "inactive";
   minOrderAmount?: number | null; // optional minimum order total to apply
   metadata?: Record<string, any> | null;
-  imageUrl?: string | null;
 }
 
 type CouponCreationAttributes = Optional<CouponAttributes, "couponId" | "usedCount" | "startsAt" | "expiresAt" | "status" | "maxUses" | "minOrderAmount" | "metadata">;
@@ -30,7 +29,6 @@ class Coupon extends Model<CouponAttributes, CouponCreationAttributes> implement
   public status!: "active" | "inactive";
   public minOrderAmount!: number | null;
   public metadata!: Record<string, any> | null;
-  public imageUrl!: string | null;
 }
 
 Coupon.init(
@@ -82,10 +80,6 @@ Coupon.init(
     },
     metadata: {
       type: DataTypes.JSON,
-      allowNull: true,
-    },
-    imageUrl: {
-      type: DataTypes.STRING,
       allowNull: true,
     },
   },

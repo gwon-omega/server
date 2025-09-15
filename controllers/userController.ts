@@ -98,4 +98,4 @@ export const updateUserImage = async (req: Request, res: Response) => {
   }
 };
 
-export default { createUser, getUser, getUserById, updateUser, deleteUser };
+export default { createUser, getUser, getUserById, updateUser, deleteUser, updateUserImage };

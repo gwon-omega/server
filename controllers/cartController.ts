@@ -114,6 +114,8 @@ export const addItem = async (req: Request, res: Response) => {
     const { userId: bodyUserId, productId, quantity = 1 } = req.body;
     const userId = tokenUserId || bodyUserId;
 
+    console.log('AddItem request:', { tokenUserId, bodyUserId, productId, quantity, userId });
+
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
     if (tokenUserId && bodyUserId && String(tokenUserId) !== String(bodyUserId)) {
       return res.status(403).json({ message: "forbidden" });
@@ -121,19 +123,25 @@ export const addItem = async (req: Request, res: Response) => {
     if (!productId) return res.status(400).json({ message: "productId required" });
 
   const product = await (Product as any).findByPk(productId);
+    console.log('Product found:', product ? product.productName : 'Not found');
     if (!product) return res.status(404).json({ message: "Product not found" });
 
     const price = computeItemPrice(product);
+    console.log('Computed price:', price);
 
     let cart = await Cart.findOne({ where: { userId } });
     if (!cart) {
+      console.log('Creating new cart for user:', userId);
       cart = await Cart.create({ userId, items: [{ productId, quantity, price }] });
     } else {
+      console.log('Updating existing cart, current items:', cart.items);
       const items = Array.isArray(cart.items) ? cart.items : [];
       const idx = items.findIndex((i: any) => String(i.productId) === String(productId));
       if (idx >= 0) {
+        console.log('Updating existing item quantity from', items[idx].quantity, 'to', items[idx].quantity + quantity);
         items[idx].quantity += quantity;
       } else {
+        console.log('Adding new item to cart');
         items.push({ productId, quantity, price });
       }
       cart.items = items;
@@ -141,6 +149,7 @@ export const addItem = async (req: Request, res: Response) => {
 
     const summary = calcSummary(cart);
     await cart.save();
+    console.log('Cart saved with summary:', summary);
     return res.status(200).json({ items: cart.items, ...summary });
   } catch (error) {
     console.error("addItem error:", error);

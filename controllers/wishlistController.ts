@@ -25,10 +25,17 @@ export const addToWishlist = async (req: Request, res: Response) => {
 
 export const getWishlist = async (req: Request, res: Response) => {
   try {
-    const userId = getUserId(req);
-    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+    const jwtUserId = getUserId(req);
+    const urlUserId = req.params.userId;
 
-    const items = await Wishlist.findAll({ where: { userId } });
+    if (!jwtUserId) return res.status(401).json({ message: "Unauthorized" });
+
+    // Security check: ensure JWT user matches URL parameter
+    if (jwtUserId !== urlUserId) {
+      return res.status(403).json({ message: "Forbidden: can only access your own wishlist" });
+    }
+
+    const items = await Wishlist.findAll({ where: { userId: jwtUserId } });
     return res.status(200).json({ items });
   } catch (error) {
     console.error("getWishlist error:", error);

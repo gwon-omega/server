@@ -18,7 +18,7 @@ export const register = async (req: Request, res: Response) => {
 		const hashed = await bcrypt.hash(password, 10);
 		const user = await (User as any).create({ email, password: hashed, phoneNumber, bankAccountNumber, address, mapAddress });
 		const u: any = user; // relaxed typing for sequelize model instance
-		const token = jwt.sign({ id: u.userId, email: u.email }, JWT_SECRET, { expiresIn: "7d" });
+		const token = jwt.sign({ id: u.userId, email: u.email, role: u.role }, JWT_SECRET, { expiresIn: "7d" });
 		return res.status(201).json({
 			message: "registered",
 			user: { id: u.userId, email: u.email, role: u.role },
@@ -50,7 +50,7 @@ export const login = async (req: Request, res: Response) => {
 		const id = (user as any).get ? (user as any).get("userId") : (user as any).userId;
 		const mail = (user as any).get ? (user as any).get("email") : (user as any).email;
 		const role = (user as any).get ? (user as any).get("role") : (user as any).role;
-		const token = jwt.sign({ id, email: mail }, JWT_SECRET, { expiresIn: "7d" });
+		const token = jwt.sign({ id, email: mail, role }, JWT_SECRET, { expiresIn: "7d" });
 		return res.json({ message: "ok", token, user: { id, email: mail, role } });
 	} catch (error) {
 		console.error("Login error:", error);

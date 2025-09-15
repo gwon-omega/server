@@ -1,4 +1,5 @@
 import express from "express";
+import path from "path";
 import dotenv from "dotenv";
 import cors from "cors";
 import sequelize, { connectDB } from "./database/connection";
@@ -16,6 +17,7 @@ import checkoutRoute from "./routes/checkoutRoute";
 import contactRoute from "./routes/contactRoute";
 import couponRoute from "./routes/couponRoute";
 import giftcodeRoute from "./routes/giftcodeRoute";
+import transcriptRoute from "./routes/transcriptRoute";
 import ProductCategory from "./database/models/productCategoryModel";
 import { seedCategories } from "./scripts/seedCategories";
 import { migrateCartTable, migrateWishlistTable } from "./scripts/migrateCartTable";
@@ -47,6 +49,10 @@ app.use("/api/checkout", checkoutRoute);
 app.use("/api/contact", contactRoute);
 app.use("/api/coupons", couponRoute);
 app.use("/api/giftcode", giftcodeRoute);
+app.use("/api/transcripts", transcriptRoute);
+
+// Static file serving for uploads (e.g., generated transcripts)
+app.use("/uploads", express.static(path.resolve(process.cwd(), "uploads")));
 
 // DB + Server
 const PORT = process.env.PORT || 5000;

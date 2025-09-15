@@ -1,7 +1,9 @@
-import {v2 as cloudinary} from 'cloudinary'
-import {CloudinaryStorage} from 'multer-storage-cloudinary'
+import cloudinaryLib from 'cloudinary'
+import { CloudinaryStorage } from 'multer-storage-cloudinary'
 
 
+
+const cloudinary = (cloudinaryLib as any).v2 || cloudinaryLib;
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -11,12 +13,9 @@ cloudinary.config({
 
 const storage = new CloudinaryStorage({
     cloudinary,
-    params : async(req,file)=>(
-        {
-            folder : "server/uploads"
-        }
-    )
-
+    params: async (req, file) => ({
+        folder: "server/uploads",
+    }),
 })
 
-export {cloudinary,storage}
+export { cloudinary, storage }
