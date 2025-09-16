@@ -62,10 +62,14 @@ export const createCoupon = async (req: Request, res: Response) => {
       const anyFile: any = file;
       payload.imageUrl = anyFile.secure_url || anyFile.path || anyFile.location || anyFile.url || anyFile.filename;
     }
+    // Upsert-by-code: if a coupon with the same code exists, update it instead of failing
     const exists = await Coupon.findOne({ where: { code: payload.code } });
-    if (exists) return res.status(409).json({ message: "code already exists" });
+    if (exists) {
+      await (exists as any).update(payload);
+      return res.status(200).json({ ...exists.toJSON(), _updated: true });
+    }
     const coupon = await Coupon.create(payload);
-    return res.status(201).json(coupon);
+    return res.status(201).json({ ...coupon.toJSON(), _created: true });
   } catch (err: any) {
     return res.status(400).json({ message: err.message || "failed" });
   }

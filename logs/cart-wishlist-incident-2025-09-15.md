@@ -1,18 +1,7 @@
-# Server Docs
-
-## Cart/Wishlist Troubleshooting (2025-09-15)
-
-- Incident log: `server/logs/cart-wishlist-incident-2025-09-15.md`
-- Quick verification without shell quoting issues:
-  - Run: `pnpm exec ts-node scripts/smokeCartWishlist.ts`
-  - This logs in with the seeded user, picks a product, adds to wishlist and cart, and fetches both states.
-  - Ensure the API server is running on <http://localhost:5000> first.
-
-## Full Incident Log
-
-## Incident Log: Cart & Wishlist issues (2025-09-15)
+# Incident Log: Cart & Wishlist issues (2025-09-15)
 
 Status: mitigated
+
 Scope: Client (Next.js) + Server (Express/Sequelize/Postgres)
 
 ## Summary

@@ -1,44 +1,58 @@
 import sequelize from "../connection";
 import { DataTypes, Model, Optional } from "sequelize";
+import User from "./userModel";
 
-interface CartAttributes {
-  id: string;
-  userId: string;
-  items: any[];
-  total: number;
-  appliedDiscount?: {
-    id?: string;
-    code: string;
-    type: 'percent' | 'fixed';
-    value: number;
-  } | null;
-  taxRate?: number; // e.g., 0.18 for 18%
-  shipping?: number; // flat shipping for now
+interface CartItem {
+  productId: string;
+  quantity: number;
+  price: number;
 }
 
-type CartCreationAttributes = Optional<CartAttributes, "items" | "total">;
+interface AppliedDiscount {
+  id?: string;
+  code: string;
+  type: 'percent' | 'fixed';
+  value: number;
+}
+
+interface CartAttributes {
+  userId: string;
+  items: CartItem[];
+  total: number;
+  appliedDiscount?: AppliedDiscount | null;
+  taxRate?: number;
+  shipping?: number;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+type CartCreationAttributes = Optional<CartAttributes, "items" | "total" | "appliedDiscount" | "taxRate" | "shipping">;
 
 class Cart extends Model<CartAttributes, CartCreationAttributes> implements CartAttributes {
-  public id!: string;
-  public userId!: string;
-  public items!: any[];
-  public total!: number;
-  public appliedDiscount?: CartAttributes['appliedDiscount'];
-  public taxRate?: number;
-  public shipping?: number;
+  declare userId: string;
+  declare items: CartItem[];
+  declare total: number;
+  declare appliedDiscount: AppliedDiscount | null;
+  declare taxRate: number;
+  declare shipping: number;
+
+  declare readonly createdAt: Date;
+  declare readonly updatedAt: Date;
+
+  // Association
+  declare readonly user?: User;
 }
 
 Cart.init(
   {
-    id: {
+    userId: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       allowNull: false,
       primaryKey: true,
-    },
-    userId: {
-      type: DataTypes.UUID,
-      allowNull: false,
+      references: { model: "users", key: "userId" },
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
     },
     items: {
       type: DataTypes.JSON,
@@ -70,7 +84,12 @@ Cart.init(
     sequelize,
     modelName: "Cart",
     tableName: "carts",
+    timestamps: true, // createdAt and updatedAt
   }
 );
+
+// Associations
+User.hasOne(Cart, { foreignKey: "userId", as: "cart" });
+Cart.belongsTo(User, { foreignKey: "userId", as: "user" });
 
 export default Cart;

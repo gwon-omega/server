@@ -3,15 +3,16 @@ import { DataTypes, Model } from "sequelize";
 import ProductCategory from "./productCategoryModel";
 
 class Product extends Model {
-  public productId!: string;
-  public productName!: string;
-  public categoryId!: string;
-  public productPrice!: number;
-  public productQuantity!: number;
-  public description?: string;
-  public productDiscount?: number;
-  public imageUrl?: string;
-  public soldQuantity?: number;
+  // Declare attributes for typing without creating public class fields at runtime
+  declare productId: string;
+  declare productName: string;
+  declare categoryId: string;
+  declare productPrice: number;
+  declare productQuantity: number;
+  declare description: string | null;
+  declare productDiscount: number | null;
+  declare imageUrl: string | null;
+  declare soldQuantity: number | null;
 }
 
 Product.init(

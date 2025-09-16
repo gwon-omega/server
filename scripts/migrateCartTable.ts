@@ -5,6 +5,13 @@ export async function migrateTableWithId(tableName: string, newPrimaryKey: strin
   try {
     console.log(`🔄 Starting ${tableName} table migration...`);
 
+    // Ensure pgcrypto extension is available for gen_random_uuid()
+    try {
+      await sequelize.query('CREATE EXTENSION IF NOT EXISTS pgcrypto;');
+    } catch (e) {
+      console.warn('⚠️ Could not ensure pgcrypto extension (may already exist or permissions missing):', (e as Error).message);
+    }
+
     // First, check if the table exists and what columns it has
     const [results] = await sequelize.query(`
       SELECT column_name, data_type, is_nullable, column_default

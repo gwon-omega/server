@@ -21,19 +21,53 @@ import transcriptRoute from "./routes/transcriptRoute";
 import ProductCategory from "./database/models/productCategoryModel";
 import { seedCategories } from "./scripts/seedCategories";
 import { migrateCartTable, migrateWishlistTable } from "./scripts/migrateCartTable";
+import {
+  securityHeaders,
+  requestLogger,
+  formatErrorResponse,
+  authRateLimit
+} from "./middleware/middleware";
 
 dotenv.config();
 
 const app = express();
 
-// Middleware
-app.use(cors({
-  origin: ["http://localhost:3000", "http://localhost:3001"], // Support both ports
-}));
-app.use(express.json());
+// Security headers (should be first)
+app.use(securityHeaders);
 
-// Routes
-app.use("/api/auth", authRoute);
+// Request logging
+app.use(requestLogger);
+
+// CORS with enhanced security
+app.use(cors({
+  origin: function(origin, callback) {
+    const allowedOrigins = [
+      "http://localhost:3000",
+      "http://localhost:3001",
+      process.env.FRONTEND_URL
+    ].filter(Boolean);
+
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS policy violation: Origin not allowed'));
+    }
+  },
+  credentials: true,
+  optionsSuccessStatus: 200,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key']
+}));
+
+// Body parsing with size limits
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Routes with appropriate rate limiting
+app.use("/api/auth", authRateLimit, authRoute);
 app.use("/api/products", productRoute);
 app.use("/api/users", userRoute);
 app.use("/api/cart", cartRoute);
@@ -85,14 +119,15 @@ const PORT = process.env.PORT || 5000;
   }
 })();
 
-// Fallback 404
+// Fallback 404 - Enhanced with proper error format
 app.use((req, res) => {
-  res.status(404).json({ message: "not found" });
+  res.status(404).json({
+    error: "Not Found",
+    message: `Cannot ${req.method} ${req.path}`,
+    statusCode: 404,
+    timestamp: new Date().toISOString()
+  });
 });
 
-// Global error handler (Express 5 has built-in route async handling)
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error("Unhandled error", err);
-  res.status(500).json({ message: "internal error" });
-});
+// Global error handler - Enhanced with structured error handling
+app.use(formatErrorResponse);
