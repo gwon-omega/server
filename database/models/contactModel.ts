@@ -29,7 +29,8 @@ Contact.init(
     },
     subject: {
       type: DataTypes.STRING(180),
-      allowNull: false,
+      // Made optional to match controller logic (subject defaults to empty string)
+      allowNull: true,
     },
     message: {
       type: DataTypes.TEXT,
@@ -54,6 +55,18 @@ Contact.init(
       { fields: ["status"] },
       { fields: ["createdAt"] },
     ],
+    hooks: {
+      beforeValidate: (contact: any) => {
+        if (contact.email && typeof contact.email === 'string') {
+          contact.email = contact.email.trim().toLowerCase();
+        }
+      },
+      beforeSave: (contact: any) => {
+        if (contact.email && typeof contact.email === 'string') {
+          contact.email = contact.email.trim().toLowerCase();
+        }
+      }
+    }
   }
 );
 

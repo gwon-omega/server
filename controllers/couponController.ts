@@ -20,6 +20,7 @@ const buildCouponPayload = (body: any, isCreate = true) => {
     status,
     minOrderAmount,
     metadata,
+    imageUrl,
   } = body;
 
   const payload: any = {};
@@ -32,6 +33,7 @@ const buildCouponPayload = (body: any, isCreate = true) => {
   if (status !== undefined) payload.status = status;
   if (minOrderAmount !== undefined) payload.minOrderAmount = minOrderAmount === null ? null : parseNumber(minOrderAmount);
   if (metadata !== undefined) payload.metadata = metadata;
+  if (imageUrl !== undefined) payload.imageUrl = imageUrl === null ? null : String(imageUrl).trim();
 
   if (isCreate) {
     if (!payload.code) throw new Error("code required");
@@ -108,9 +110,14 @@ export const updateCoupon = async (req: Request, res: Response) => {
       const anyFile: any = file;
       payload.imageUrl = anyFile.secure_url || anyFile.path || anyFile.location || anyFile.url || anyFile.filename;
     }
-    // Prevent changing code to duplicate
+    // Prevent changing code to duplicate (exclude current coupon from check)
     if (payload.code && payload.code !== (coupon as any).code) {
-      const dup = await Coupon.findOne({ where: { code: payload.code } });
+      const dup = await Coupon.findOne({
+        where: {
+          code: payload.code,
+          couponId: { [Op.ne]: req.params.id } // Exclude current coupon
+        }
+      });
       if (dup) return res.status(409).json({ message: "code already exists" });
     }
     await coupon.update(payload);

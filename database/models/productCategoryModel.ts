@@ -16,6 +16,11 @@ ProductCategory.init(
       allowNull: false,
   unique: true,
     },
+    // Optional image for display on dashboard/homepage
+    imageUrl: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     sequelize,

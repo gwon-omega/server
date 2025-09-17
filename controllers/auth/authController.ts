@@ -3,8 +3,8 @@ import User from "../../database/models/userModel";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET || "yo_mero_secret_key_ho";
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "15d";
+const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN;
 
 export const register = async (req: Request, res: Response) => {
 	try {
@@ -17,12 +17,13 @@ export const register = async (req: Request, res: Response) => {
 		if (existing) return res.status(409).json({ message: "Email already in use" });
 
 		const hashed = await bcrypt.hash(password, 10);
-		const user = await (User as any).create({ email, password: hashed, phoneNumber, bankAccountNumber, address, mapAddress });
+			const user = await (User as any).create({ email, password: hashed, phoneNumber, bankAccountNumber, address, mapAddress });
 		const u: any = user; // relaxed typing for sequelize model instance
-		const token = jwt.sign({ id: u.userId, email: u.email, role: u.role }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+			// Include both userId and id in JWT payload for compatibility across middleware/controllers
+			const token = jwt.sign({ userId: u.userId, id: u.userId, email: u.email, role: u.role }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 		return res.status(201).json({
 			message: "registered",
-			user: { id: u.userId, email: u.email, role: u.role },
+				user: { id: u.userId, email: u.email, role: u.role },
 			token,
 		});
 	} catch (error) {
@@ -51,7 +52,8 @@ export const login = async (req: Request, res: Response) => {
 		const id = (user as any).get ? (user as any).get("userId") : (user as any).userId;
 		const mail = (user as any).get ? (user as any).get("email") : (user as any).email;
 		const role = (user as any).get ? (user as any).get("role") : (user as any).role;
-		const token = jwt.sign({ id, email: mail, role }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+		// Include both userId and id in JWT payload for compatibility across middleware/controllers
+		const token = jwt.sign({ userId: id, id, email: mail, role }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 		return res.json({ message: "ok", token, user: { id, email: mail, role } });
 	} catch (error) {
 		console.error("Login error:", error);
@@ -78,7 +80,8 @@ export const profile = async (req: Request, res: Response) => {
 		if (!auth) return res.status(401).json({ message: "No token" });
 		const token = auth.replace("Bearer ", "");
 		const payload: any = jwt.verify(token, JWT_SECRET);
-		const user = await (User as any).findByPk(payload.id, { attributes: { exclude: ["password"] } });
+		const lookupId = payload.userId || payload.id;
+		const user = await (User as any).findByPk(lookupId, { attributes: { exclude: ["password"] } });
 		if (!user) return res.status(404).json({ message: "User not found" });
 		return res.json({ user });
 	} catch (error) {

@@ -35,6 +35,33 @@ Order.init(
       allowNull: false,
       defaultValue: "pending",
     },
+    // New: persisted customer snapshot (non-sensitive)
+    customerData: {
+      type: DataTypes.JSON,
+      allowNull: true,
+    },
+    // New: sanitized payment info (never full card / cvv)
+    paymentData: {
+      type: DataTypes.JSON,
+      allowNull: true,
+    },
+    paymentMethod: {
+      type: DataTypes.STRING(20),
+      allowNull: true,
+    },
+    notes: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    transactionRef: {
+      type: DataTypes.STRING(120),
+      allowNull: true,
+    },
+    paymentStatus: {
+      type: DataTypes.ENUM('pending','initiated','completed','failed','refunded'),
+      allowNull: true,
+      defaultValue: 'pending'
+    },
   },
   {
     sequelize,

@@ -15,7 +15,7 @@ const router = Router();
 
 // Apply general rate limiting and request size limits to all cart routes
 router.use(generalRateLimit);
-router.use(requestSizeLimit('1mb'));
+router.use(requestSizeLimit('5mb'));
 
 // Get user's cart - with ownership verification
 router.get("/:userId",

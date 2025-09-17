@@ -6,15 +6,22 @@ import { body, validationResult, param, query } from "express-validator";
 
 // Rate limiting configurations
 export const authRateLimit = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // Limit each IP to 5 requests per windowMs for auth endpoints
+  // express-rate-limit expects milliseconds
+  windowMs: (() => {
+    const minutes = Number(process.env.AUTH_RATE_LIMIT_WINDOW_MINUTES || 15);
+    return Math.max(1, Math.floor(minutes)) * 60 * 1000; // minutes -> ms
+  })(),
+  max: (() => {
+    const max = Number(process.env.AUTH_RATE_LIMIT_MAX_REQUESTS || 5);
+    return Math.max(1, Math.floor(max));
+  })(),
   message: {
     error: "Too many authentication attempts",
-    message: "Please try again after 15 minutes",
+    message: `Please try again after ${process.env.AUTH_RATE_LIMIT_WINDOW_MINUTES || 15} minutes`,
     statusCode: 429
   },
-  standardHeaders: true,
-  legacyHeaders: false,
+  standardHeaders: true, // Sends RateLimit-* headers per RFC
+  legacyHeaders: false,   // Disables X-RateLimit-* headers
   statusCode: 429
 });
 
@@ -136,8 +143,12 @@ export const securityChecker = (req: Request, res: Response, next: NextFunction)
     const secret = process.env.JWT_SECRET || "yo_mero_secret_key_ho";
     const decoded = jwt.verify(token, secret) as any;
 
+    // Normalize payload for backward compatibility (support tokens that used `id` instead of `userId`)
+    const normalizedUserId = decoded.userId || decoded.id;
+    const normalized = { ...decoded, userId: normalizedUserId };
+
     // Validate token structure
-    if (!decoded.userId || !decoded.email) {
+    if (!normalized.userId || !normalized.email) {
       return res.status(401).json({
         error: "Invalid token payload",
         message: "Token does not contain required user information",
@@ -145,7 +156,7 @@ export const securityChecker = (req: Request, res: Response, next: NextFunction)
       });
     }
 
-    (req as any).user = decoded;
+    (req as any).user = normalized;
     return next();
   } catch (error: any) {
     let message = "Invalid or expired token";

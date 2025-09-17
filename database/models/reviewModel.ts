@@ -42,6 +42,18 @@ Review.init(
     sequelize,
     modelName: "Review",
     tableName: "reviews",
+    hooks: {
+      beforeValidate: (review: any) => {
+        if (review.email && typeof review.email === 'string') {
+          review.email = review.email.trim().toLowerCase();
+        }
+      },
+      beforeSave: (review: any) => {
+        if (review.email && typeof review.email === 'string') {
+          review.email = review.email.trim().toLowerCase();
+        }
+      }
+    }
   }
 );
 

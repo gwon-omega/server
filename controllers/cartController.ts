@@ -56,7 +56,7 @@ const calcSummary = (cart: any) => {
 // ------------------------------
 export const getCart = async (req: Request, res: Response) => {
   try {
-    const tokenUserId = (req as any).user?.id;
+  const tokenUserId = (req as any).user?.userId || (req as any).user?.id;
     const routeUserId = (req.params as any)?.userId || (req.query as any)?.userId || (req.body as any)?.userId;
     const userId = tokenUserId || routeUserId;
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
@@ -115,7 +115,7 @@ export const getCart = async (req: Request, res: Response) => {
 // ------------------------------
 export const addItem = async (req: Request, res: Response) => {
   try {
-    const tokenUserId = (req as any).user?.id;
+  const tokenUserId = (req as any).user?.userId || (req as any).user?.id;
     const { userId: bodyUserId, productId } = req.body;
     let { quantity = 1 } = req.body;
     quantity = Math.max(1, parseInt(String(quantity), 10) || 1);
@@ -170,7 +170,7 @@ export const addItem = async (req: Request, res: Response) => {
 // ------------------------------
 export const updateItem = async (req: Request, res: Response) => {
   try {
-    const tokenUserId = (req as any).user?.id;
+  const tokenUserId = (req as any).user?.userId || (req as any).user?.id;
     const { userId: bodyUserId, productId, quantity } = req.body;
     const userId = tokenUserId || bodyUserId;
 
@@ -212,7 +212,7 @@ export const updateItem = async (req: Request, res: Response) => {
 // ------------------------------
 export const clearCart = async (req: Request, res: Response) => {
   try {
-    const tokenUserId = (req as any).user?.id;
+  const tokenUserId = (req as any).user?.userId || (req as any).user?.id;
     const routeUserId = (req.params as any)?.userId || (req.body as any)?.userId;
     const userId = tokenUserId || routeUserId;
     if (!userId) return res.status(401).json({ message: "Unauthorized" });

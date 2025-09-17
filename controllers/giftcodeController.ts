@@ -35,7 +35,7 @@ const calcSummary = (cart: any) => {
 
 export const applyGiftCode = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user?.id;
+    const userId = (req as any).user?.userId || (req as any).user?.id;
     const { code } = req.body || {};
     if (!userId) return res.status(401).json({ message: "unauthorized" });
     if (!code) return res.status(400).json({ message: "code required" });
@@ -70,7 +70,7 @@ export const applyGiftCode = async (req: Request, res: Response) => {
 
 export const removeGiftCode = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user?.id;
+    const userId = (req as any).user?.userId || (req as any).user?.id;
     if (!userId) return res.status(401).json({ message: "unauthorized" });
     const cart = await Cart.findOne({ where: { userId } });
     if (!cart) return res.status(404).json({ message: "cart not found" });

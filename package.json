@@ -10,7 +10,10 @@
     "seed:products": "ts-node scripts/seedProducts.ts",
     "seed:reviews": "ts-node scripts/seedReviews.ts",
     "check:users": "ts-node scripts/checkUsers.ts",
-    "test": "pnpm exec ts-node tests/paymentService.test.ts"
+    "migrate:payment-fields": "ts-node scripts/migrateAddPaymentFields.ts",
+    "test": "pnpm exec ts-node tests/paymentService.test.ts",
+    "test:rate-limit": "pnpm exec ts-node scripts/testRateLimitConfig.ts",
+    "normalize:emails": "ts-node scripts/normalizeEmails.ts"
   },
   "keywords": [],
   "author": "",

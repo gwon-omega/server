@@ -19,7 +19,12 @@ export const checkout = async (req: Request, res: Response) => {
   const userId = user?.userId || user?.id; // support different token payload styles
   if (!userId) return res.status(400).json({ message: "missing user context" });
 
-  const { initiatePayment } = req.query; // optional ?initiatePayment=true to integrate with payment flow later
+  const { initiatePayment } = req.query; // optional ?initiatePayment=true
+
+  // Extract optional structured payload (tolerant: ignore if absent)
+  const rawCustomer = (req.body && (req.body as any).customer) || undefined;
+  const rawPayment = (req.body && (req.body as any).payment) || undefined;
+  const rawNotes = (req.body && (req.body as any).notes) || undefined;
 
   const t = await sequelize.transaction();
   try {
@@ -65,17 +70,56 @@ export const checkout = async (req: Request, res: Response) => {
     }
     total = parseFloat(total.toFixed(2));
 
-    // Create order
-    const order = await Order.create(
-      {
-        userId,
-        items: orderItems,
-        total,
-        totalAmount: total,
-        status: "pending",
-      },
-      { transaction: t }
-    );
+    // Sanitize customer & payment snapshots
+    const customerData = rawCustomer ? {
+      fullName: rawCustomer.fullName?.toString().slice(0,150) || null,
+      email: rawCustomer.email?.toString().slice(0,180) || null,
+      phone: rawCustomer.phone?.toString().slice(0,40) || null,
+      address: rawCustomer.address?.toString().slice(0,500) || null,
+      mapAddress: rawCustomer.mapAddress?.toString().slice(0,500) || null,
+    } : null;
+
+    let paymentMethod: string | null = null;
+    let paymentData: any = null;
+    if (rawPayment && rawPayment.method) {
+      paymentMethod = String(rawPayment.method);
+      if (paymentMethod === 'card' && rawPayment.card) {
+        const num = (rawPayment.card.cardNumber || '').replace(/[^0-9]/g,'');
+        const last4 = num ? num.slice(-4) : undefined;
+        paymentData = {
+          method: 'card',
+          brand: undefined, // future: detect from BIN
+          last4,
+          expiry: rawPayment.card.expiry?.toString().slice(0,7) || null,
+          nameOnCard: rawPayment.card.nameOnCard?.toString().slice(0,120) || null,
+        };
+      } else if (paymentMethod === 'wallet' && rawPayment.wallet) {
+        paymentData = {
+          method: 'wallet',
+            provider: rawPayment.wallet.provider,
+            walletNumber: rawPayment.wallet.walletNumber?.toString().slice(-4) || null, // store last 4 for reference only
+        };
+      } else if (paymentMethod === 'cod') {
+        paymentData = { method: 'cod' };
+      }
+    }
+
+    const notes = rawNotes ? String(rawNotes).slice(0, 2000) : null;
+
+    // Create order with extended fields
+    const order = await Order.create({
+      userId,
+      items: orderItems,
+      total,
+      totalAmount: total,
+      status: 'pending',
+      customerData,
+      paymentData,
+      paymentMethod,
+      notes,
+      paymentStatus: paymentMethod && paymentMethod !== 'cod' ? 'initiated' : 'pending',
+      transactionRef: null,
+    }, { transaction: t });
 
     // Clear cart
   c.items = [];
@@ -90,7 +134,7 @@ export const checkout = async (req: Request, res: Response) => {
       // For now respond with order object only
     }
 
-    return res.status(201).json({ message: "checkout successful", order });
+  return res.status(201).json({ message: "checkout successful", order });
   } catch (err: any) {
     await t.rollback();
     console.error("Checkout failed", err);

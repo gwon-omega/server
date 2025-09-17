@@ -19,8 +19,9 @@ import couponRoute from "./routes/couponRoute";
 import giftcodeRoute from "./routes/giftcodeRoute";
 import transcriptRoute from "./routes/transcriptRoute";
 import ProductCategory from "./database/models/productCategoryModel";
+// Ensure Contact model is registered before sync so its table exists
+import "./database/models/contactModel";
 import { seedCategories } from "./scripts/seedCategories";
-import { migrateCartTable, migrateWishlistTable } from "./scripts/migrateCartTable";
 import {
   securityHeaders,
   requestLogger,
@@ -93,23 +94,17 @@ const PORT = process.env.PORT || 5000;
 
 (async () => {
   try {
-    // Step 1: Run database migrations first
-    console.log("🔄 Running database migrations...");
-    await migrateCartTable();
-    await migrateWishlistTable();
-    console.log("✅ All migrations completed successfully");
-
-    // Step 2: Connect to database with sync
+    // Step 1: Connect to database with sync (migrations removed as requested)
     await connectDB({ sync: true }); // explicit - dev only
 
-    // Step 3: Seed categories if empty
+    // Step 2: Seed categories if empty
     const catCount = await ProductCategory.count();
     if (catCount === 0) {
       const result = await seedCategories();
       console.log("Seeded base categories", result);
     }
 
-    // Step 4: Start server
+    // Step 3: Start server
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
     });

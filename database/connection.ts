@@ -14,7 +14,7 @@ const sequelize = new Sequelize(dbUrl, {
       rejectUnauthorized: false, // required by Supabase in many environments
     },
   },
-  logging: console.log,
+  logging: false, // Disable logging; set to console.log to see the raw SQL queries
 });
 
 export async function connectDB(options?: { sync?: boolean }) {
@@ -24,7 +24,7 @@ export async function connectDB(options?: { sync?: boolean }) {
     if (options?.sync) {
       // sync is potentially destructive in production; only run explicitly
       // Skip sync for cart table since we manually migrated it
-      await sequelize.sync({ alter: true, force: false });
+      await sequelize.sync({ alter: false });
       console.log("✅ Database synchronized successfully.");
     }
   } catch (error) {

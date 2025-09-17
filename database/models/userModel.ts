@@ -83,6 +83,18 @@ User.init(
     sequelize,
     modelName: "User",
     tableName: "users",
+    hooks: {
+      beforeValidate: (user: any) => {
+        if (user.email && typeof user.email === 'string') {
+          user.email = user.email.trim().toLowerCase();
+        }
+      },
+      beforeSave: (user: any) => {
+        if (user.email && typeof user.email === 'string') {
+          user.email = user.email.trim().toLowerCase();
+        }
+      }
+    }
   }
 );
 
