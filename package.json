@@ -11,9 +11,16 @@
     "seed:reviews": "ts-node scripts/seedReviews.ts",
     "check:users": "ts-node scripts/checkUsers.ts",
     "migrate:payment-fields": "ts-node scripts/migrateAddPaymentFields.ts",
+    "migrate:coupon-users-used": "ts-node scripts/migrateCouponUsersUsed.ts",
     "test": "pnpm exec ts-node tests/paymentService.test.ts",
     "test:rate-limit": "pnpm exec ts-node scripts/testRateLimitConfig.ts",
-    "normalize:emails": "ts-node scripts/normalizeEmails.ts"
+    "normalize:emails": "ts-node scripts/normalizeEmails.ts",
+  "migrate:user-mapaddress-text": "ts-node scripts/migrateUserMapAddressToText.ts",
+    "test:e2e-cart": "pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/e2e-cart-checkout.ps1",
+    "test:cart-only": "pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/cart-only-test.ps1",
+  "test:cart-20": "pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/cart-20items.ps1",
+  "test:cart-20:login": "pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/cart-20items-with-login.ps1",
+    "test:cart-20:node": "cross-env BASE=http://localhost:5000 ts-node scripts/testCartFlow.ts"
   },
   "keywords": [],
   "author": "",
@@ -46,6 +53,7 @@
     "@types/node": "^24.3.0",
     "@types/pdfkit": "^0.17.3",
     "eslint": "^9.34.0",
+    "cross-env": "^7.0.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
   }

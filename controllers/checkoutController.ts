@@ -64,9 +64,10 @@ export const checkout = async (req: Request, res: Response) => {
         lineTotal: parseFloat(lineTotal.toFixed(2)),
       });
       // decrement inventory & increment sold count
-      product.productQuantity -= line.quantity;
-      product.soldQuantity = (product.soldQuantity || 0) + line.quantity;
-      await product.save({ transaction: t });
+  product.productQuantity -= line.quantity;
+  if (product.productQuantity < 0) product.productQuantity = 0; // safety clamp
+  product.soldQuantity = (product.soldQuantity || 0) + line.quantity;
+  await product.save({ transaction: t });
     }
     total = parseFloat(total.toFixed(2));
 

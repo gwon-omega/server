@@ -1,6 +1,7 @@
 import * as express from "express";
 import { createCoupon, getCoupons, getCouponById, updateCoupon, deleteCoupon, validateCoupon, getActiveCoupons } from "../controllers/couponController";
-import { securityChecker, isAdmin, isAuth } from "../middleware/middleware";
+import { securityChecker, isAdmin, isAuth, handleValidationErrors } from "../middleware/middleware";
+import { body } from "express-validator";
 import upload from "../middleware/multerUpload";
 
 const router = express.Router();
@@ -13,7 +14,24 @@ router.put("/:id", securityChecker, isAdmin, upload.single("image"), updateCoupo
 router.delete("/:id", securityChecker, isAdmin, deleteCoupon);
 
 // Public validation for authenticated users
-router.post("/validate", securityChecker, isAuth, validateCoupon);
+router.post("/validate",
+  [
+    body('code').notEmpty().withMessage('Coupon code is required'),
+    body('orderAmount').optional().isNumeric().withMessage('Order amount must be a number'),
+    body('orderTotal').optional().isNumeric().withMessage('Order total must be a number'),
+    // Custom validation to ensure at least one total field is provided
+    body().custom((body) => {
+      if (!body.orderTotal && !body.orderAmount) {
+        throw new Error('Either orderTotal or orderAmount is required');
+      }
+      return true;
+    }),
+    handleValidationErrors
+  ],
+  securityChecker,
+  isAuth,
+  validateCoupon
+);
 
 // Public active coupons
 router.get("/public/active", getActiveCoupons);

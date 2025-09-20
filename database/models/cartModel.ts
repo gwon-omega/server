@@ -2,12 +2,9 @@ import sequelize from "../connection";
 import { DataTypes, Model, Optional } from "sequelize";
 import User from "./userModel";
 
-interface CartItem {
-  productId: string;
-  quantity: number;
-  price: number;
-}
-
+/**
+ * Applied discount structure for cart-level discounts
+ */
 interface AppliedDiscount {
   id?: string;
   code: string;
@@ -15,10 +12,12 @@ interface AppliedDiscount {
   value: number;
 }
 
+/**
+ * Cart model attributes - normalized approach without JSON items
+ */
 interface CartAttributes {
+  cartId: string;
   userId: string;
-  items: CartItem[];
-  total: number;
   appliedDiscount?: AppliedDiscount | null;
   taxRate?: number;
   shipping?: number;
@@ -26,12 +25,14 @@ interface CartAttributes {
   updatedAt?: Date;
 }
 
-type CartCreationAttributes = Optional<CartAttributes, "items" | "total" | "appliedDiscount" | "taxRate" | "shipping">;
+type CartCreationAttributes = Optional<CartAttributes, "cartId" | "appliedDiscount" | "taxRate" | "shipping">;
 
+/**
+ * Normalized Cart model - items stored in separate cart_items table
+ */
 class Cart extends Model<CartAttributes, CartCreationAttributes> implements CartAttributes {
+  declare cartId: string;
   declare userId: string;
-  declare items: CartItem[];
-  declare total: number;
   declare appliedDiscount: AppliedDiscount | null;
   declare taxRate: number;
   declare shipping: number;
@@ -39,30 +40,26 @@ class Cart extends Model<CartAttributes, CartCreationAttributes> implements Cart
   declare readonly createdAt: Date;
   declare readonly updatedAt: Date;
 
-  // Association
+  // Associations - items will come from CartItem model
   declare readonly user?: User;
+  declare readonly items?: any[]; // Will be properly typed when CartItem is imported
 }
 
 Cart.init(
   {
-    userId: {
+    cartId: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       allowNull: false,
       primaryKey: true,
+    },
+    userId: {
+      type: DataTypes.UUID,
+      allowNull: false,
       references: { model: "users", key: "userId" },
+      unique: true,
       onDelete: "CASCADE",
       onUpdate: "CASCADE",
-    },
-    items: {
-      type: DataTypes.JSON,
-      allowNull: false,
-      defaultValue: [],
-    },
-    total: {
-      type: DataTypes.FLOAT,
-      allowNull: false,
-      defaultValue: 0,
     },
     appliedDiscount: {
       type: DataTypes.JSON,
@@ -72,7 +69,7 @@ Cart.init(
     taxRate: {
       type: DataTypes.FLOAT,
       allowNull: true,
-      defaultValue: 0.18,
+      defaultValue: 0.13,
     },
     shipping: {
       type: DataTypes.FLOAT,

@@ -1,7 +1,9 @@
 import express from "express";
 import path from "path";
 import dotenv from "dotenv";
+dotenv.config();
 import cors from "cors";
+import { maintenanceMode } from './middleware/maintenanceMode';
 import sequelize, { connectDB } from "./database/connection";
 import authRoute from "./routes/auth/authRoute";
 import productRoute from "./routes/productRoute";
@@ -18,10 +20,14 @@ import contactRoute from "./routes/contactRoute";
 import couponRoute from "./routes/couponRoute";
 import giftcodeRoute from "./routes/giftcodeRoute";
 import transcriptRoute from "./routes/transcriptRoute";
+import eventsRoute from "./routes/eventsRoute";
 import ProductCategory from "./database/models/productCategoryModel";
 // Ensure Contact model is registered before sync so its table exists
 import "./database/models/contactModel";
 import { seedCategories } from "./scripts/seedCategories";
+// Register job processors (cart, etc.) - DISABLED due to cart normalization
+// Cart background job processors - DISABLED for production
+import "./events/cartJobs";
 import {
   securityHeaders,
   requestLogger,
@@ -29,12 +35,13 @@ import {
   authRateLimit
 } from "./middleware/middleware";
 
-dotenv.config();
-
 const app = express();
 
 // Security headers (should be first)
 app.use(securityHeaders);
+
+// Maintenance mode (must run before other route handlers)
+app.use(maintenanceMode);
 
 // Request logging
 app.use(requestLogger);
@@ -85,6 +92,7 @@ app.use("/api/contact", contactRoute);
 app.use("/api/coupons", couponRoute);
 app.use("/api/giftcode", giftcodeRoute);
 app.use("/api/transcripts", transcriptRoute);
+app.use("/api/events", eventsRoute);
 
 // Static file serving for uploads (e.g., generated transcripts)
 app.use("/uploads", express.static(path.resolve(process.cwd(), "uploads")));

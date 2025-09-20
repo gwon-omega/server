@@ -1,2 +1,196 @@
-node_modules
+# ================================
+# 🛡️ SERVER-SPECIFIC GITIGNORE
+# ================================
+
+# ==========================================
+# 📁 DEPENDENCIES
+# ==========================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ==========================================
+# 🔐 ENVIRONMENT & SECRETS
+# ==========================================
 .env
+.env.local
+.env.development
+.env.production
+.env.test
+*.env
+
+# Database configuration
+database.json
+config/database.js
+config/config.json
+
+# JWT keys
+jwt-private.key
+jwt-public.key
+private.key
+public.key
+
+# ==========================================
+# 🗄️ DATABASE FILES
+# ==========================================
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+database.db
+dev.db
+test.db
+production.db
+
+# Database dumps
+*.sql.gz
+*.sql.bak
+dump.sql
+backup.sql
+
+# ==========================================
+# 📊 LOGS & MONITORING
+# ==========================================
+logs/
+*.log
+combined.log
+error.log
+access.log
+debug.log
+
+# Specific log files that shouldn't be committed
+logs/cart-wishlist-incident-*.md
+logs/performance-*.log
+logs/error-*.log
+
+# ==========================================
+# 📤 UPLOADS & TEMPORARY FILES
+# ==========================================
+uploads/
+!uploads/.gitkeep
+temp/
+temporary/
+*.tmp
+*.temp
+
+# Image processing temp
+image-resize-cache/
+upload-validation-temp/
+
+# ==========================================
+# 🏗️ BUILD ARTIFACTS
+# ==========================================
+dist/
+build/
+*.tsbuildinfo
+coverage/
+
+# ==========================================
+# 🧪 TESTING & DEVELOPMENT
+# ==========================================
+# Test databases
+test.sqlite
+test.db
+*.test.db
+
+# Test folders
+test/
+tests/
+
+# Development scripts
+dev-scripts/
+test-data/
+mock-data/
+
+# Scripts folder (development/test scripts)
+scripts/
+!scripts/production/
+!scripts/deployment/
+!scripts/seeders/
+
+# Migration backups (keep forward migrations only)
+scripts/cart-backup-*.json
+scripts/migration-log-*.txt
+scripts/*rollback*.ts
+scripts/*rollback*.js
+
+# ==========================================
+# 💳 PAYMENT & SENSITIVE DATA
+# ==========================================
+# Payment processing logs
+payment-logs/
+stripe-webhooks.log
+paypal-responses.log
+payment-debug.log
+
+# Webhook signatures and secrets
+webhook-secrets.json
+stripe-events.log
+
+# ==========================================
+# 📈 PERFORMANCE & DEBUGGING
+# ==========================================
+# Performance monitoring
+performance-*.json
+memory-usage-*.log
+*.prof
+*.heapsnapshot
+
+# Debug files
+debug-*.json
+trace-*.log
+
+# ==========================================
+# 🔧 DEVELOPMENT TOOLS
+# ==========================================
+# IDE files
+.vscode/
+!.vscode/settings.json
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ==========================================
+# 🚀 DEPLOYMENT
+# ==========================================
+# Production builds
+dist-production/
+build-production/
+
+# SSL certificates
+ssl/
+certificates/
+*.pem
+*.key
+*.cert
+*.crt
+
+# Docker development overrides
+docker-compose.override.yml
+Dockerfile.dev
+
+# ==========================================
+# 📊 ANALYTICS & REPORTING
+# ==========================================
+# Usage analytics
+analytics-data/
+user-behavior.log
+cart-analytics.json
+
+# Error reporting
+sentry-debug.log
+error-reports/
+
+# Event processing and async jobs
+events/
+!events/production/
+!events/*.example.js
+
+# ==========================================
+# END OF SERVER GITIGNORE
+# ==========================================

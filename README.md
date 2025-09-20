@@ -487,6 +487,45 @@ Note: Categories are available under both `/api/categories` and `/api/product-ca
 ```
 
 #### **POST `/api/cart/clear`** (Protected + Ownership)
+#### **POST `/api/cart/sync`** (Protected + Ownership)
+Replaces the entire cart with a provided array of items (idempotent). Useful after login to reconcile local (client) cart with server.
+
+```javascript
+// Request Body
+{
+  "userId": "uuid-v4",
+  "items": [
+    { "productId": "uuid-product-1", "quantity": 2 },
+    { "productId": "uuid-product-2", "quantity": 3 }
+  ]
+}
+
+// Success Response (200)
+{
+  "items": [
+    { "productId": "uuid-product-1", "quantity": 2, "price": 12.49 },
+    { "productId": "uuid-product-2", "quantity": 3, "price": 7.99 }
+  ],
+  "subtotal": 48.45,
+  "taxRate": 0.18,
+  "tax": 8.72,
+  "shipping": 0,
+  "discount": null,
+  "discountAmount": 0,
+  "total": 57.17
+}
+
+// Notes
+// - Items with invalid product IDs are silently dropped.
+// - Duplicate productIds keep the LAST occurrence.
+// - Quantities clamped to 1..99.
+// - Unknown or empty items array effectively clears the cart.
+```
+
+### Cart Rate Limiting
+
+`/api/cart/add` has an additional tighter rate limit to mitigate automated abuse (e.g., cart stuffing or price probing). Adjust the limiter values via env vars or code if legitimate traffic volume increases.
+
 ```javascript
 // Request Body
 {
@@ -1764,3 +1803,50 @@ This documentation provides a complete reference for integrating with the e-comm
 **Last Updated**: September 16, 2025
 **API Version**: 1.0
 **Backend Framework**: Express.js + TypeScript + PostgreSQL + Sequelize
+
+---
+
+## 🛠️ **Maintenance Mode**
+
+The backend can be placed into a global maintenance state without changing code.
+
+### Toggle
+
+Set the environment variable:
+
+```bash
+APP_MODE=maintenance
+```
+
+Restart the process (or redeploy). To return to normal operation:
+
+```bash
+APP_MODE=production
+```
+
+### Behavior
+
+- All API endpoints immediately return `503 Service Unavailable` with JSON:
+  ```json
+  { "error": "Site is under maintenance. Please try again later." }
+  ```
+- Normal route handlers, DB logic, and heavy work are skipped—protecting the system during migrations or deployments.
+- Each intercepted request is appended to a rolling log file: `logs/maintenance-YYYY-MM-DD.log`.
+
+### Implementation Notes
+
+- Enforced via early Express middleware: `middleware/maintenanceMode.ts` registered before other routes in `server.ts`.
+- Logging is best-effort (errors swallowed) to avoid blocking responses.
+- Designed so switching the flag is instantaneous after process restart; no need to rebuild.
+
+### Recommended Usage
+
+1. Announce downtime (status page / banner) ahead of flipping the flag when possible.
+2. Set `APP_MODE=maintenance` and restart.
+3. Perform migrations / maintenance tasks.
+4. Run quick smoke tests (optionally exempt a health endpoint if desired).
+5. Set `APP_MODE=production` and restart.
+6. Monitor error logs & performance metrics post-resume.
+
+You may extend the middleware to allow-listed IPs or a signed preview token if selective access during maintenance is needed.
+

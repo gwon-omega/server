@@ -46,10 +46,45 @@ export const updateUser = async (req: Request, res: Response) => {
     if (!isAdmin && !isSelf) {
       return res.status(403).json({ message: "forbidden" });
     }
-    if (req.body.password) {
-      req.body.password = await bcrypt.hash(req.body.password, 10);
+    // Password semantics:
+    // - If password is explicitly null or undefined or empty string => do NOT change existing password.
+    // - If provided as a non-empty string => hash and update.
+    if (Object.prototype.hasOwnProperty.call(req.body, "password")) {
+      const pw = req.body.password;
+      if (pw === null || pw === undefined || (typeof pw === "string" && pw.trim() === "")) {
+        delete req.body.password; // preserve existing password
+      } else if (typeof pw === "string") {
+        req.body.password = await bcrypt.hash(pw, 10);
+      } else {
+        // Non-string password types are invalid
+        return res.status(400).json({ message: "Invalid email or password" });
+      }
     }
-  const [, [updated]] = await User.update(req.body, { where: { userId: req.params.id }, returning: true });
+    // Defensive: if mapAddress sneaks through very long, trim to a reasonable cap (e.g., 2048)
+    if (typeof req.body.mapAddress === "string" && req.body.mapAddress.length > 2048) {
+      req.body.mapAddress = req.body.mapAddress.slice(0, 2048);
+    }
+    let updated: any;
+    try {
+      const [, [row]] = await User.update(req.body, {
+        where: { userId: req.params.id },
+        returning: true,
+      });
+      updated = row;
+    } catch (e: any) {
+      const code = e?.parent?.code || e?.code;
+      // If DB column is still VARCHAR(255), gracefully truncate and retry once
+      if (code === "22001" && typeof req.body.mapAddress === "string") {
+        req.body.mapAddress = req.body.mapAddress.slice(0, 255);
+        const [, [row2]] = await User.update(req.body, {
+          where: { userId: req.params.id },
+          returning: true,
+        });
+        updated = row2;
+      } else {
+        throw e;
+      }
+    }
     if (!updated) return res.status(404).json({ message: "not found" });
     const u = updated.toJSON();
     delete u.password;

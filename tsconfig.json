@@ -11,8 +11,15 @@
     "skipLibCheck": true, // skip type checks for node_modules
     "forceConsistentCasingInFileNames": true,
     "outDir": "dist",
-    "rootDir": "."
+    "rootDir": ".",
+    "typeRoots": ["./types", "./node_modules/@types"]
   },
-  "include": ["**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": ["**/*.ts", "types/**/*.d.ts"],
+  "exclude": ["node_modules"],
+  "ts-node": {
+    "files": true,
+    "compilerOptions": {
+      "typeRoots": ["./types", "./node_modules/@types"]
+    }
+  }
 }

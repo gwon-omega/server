@@ -95,6 +95,7 @@ export const getProductSummaries = async (req: Request, res: Response) => {
         'productName',
         'productPrice',
         'productDiscount',
+        'description',
         'imageUrl',
         'createdAt',
         'updatedAt',

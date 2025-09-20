@@ -8,6 +8,7 @@ export interface CouponAttributes {
   value: number; // percent (0-100) or fixed amount (>0)
   maxUses?: number | null; // null = unlimited
   usedCount: number;
+  usersUsed?: string[] | null; // Array of user IDs who have used this coupon
   startsAt?: Date | null;
   expiresAt?: Date | null;
   status: "active" | "inactive";
@@ -16,7 +17,7 @@ export interface CouponAttributes {
   imageUrl?: string | null;
 }
 
-type CouponCreationAttributes = Optional<CouponAttributes, "couponId" | "usedCount" | "startsAt" | "expiresAt" | "status" | "maxUses" | "minOrderAmount" | "metadata">;
+type CouponCreationAttributes = Optional<CouponAttributes, "couponId" | "usedCount" | "usersUsed" | "startsAt" | "expiresAt" | "status" | "maxUses" | "minOrderAmount" | "metadata">;
 
 class Coupon extends Model<CouponAttributes, CouponCreationAttributes> implements CouponAttributes {
   public couponId!: string;
@@ -25,6 +26,7 @@ class Coupon extends Model<CouponAttributes, CouponCreationAttributes> implement
   public value!: number;
   public maxUses!: number | null;
   public usedCount!: number;
+  public usersUsed!: string[] | null;
   public startsAt!: Date | null;
   public expiresAt!: Date | null;
   public status!: "active" | "inactive";
@@ -62,6 +64,11 @@ Coupon.init(
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0,
+    },
+    usersUsed: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      defaultValue: null,
     },
     startsAt: {
       type: DataTypes.DATE,

@@ -38,6 +38,10 @@ User.init(
       allowNull: false,
       primaryKey: true,
     },
+    fullName:{
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     email: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -64,9 +68,10 @@ User.init(
       allowNull: true,
     },
     mapAddress: {
-      type: DataTypes.STRING,
+      // Allow long Google Maps embed/share URLs
+      type: DataTypes.TEXT,
       allowNull: true,
-      comment: "Google Maps formatted address or map link for precise delivery",
+      comment: "Sanitized map URL (https, allowed hosts) — may be long",
     },
     status: {
       type: DataTypes.ENUM("active", "inactive", "banned"),

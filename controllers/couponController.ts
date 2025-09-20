@@ -141,35 +141,95 @@ export const deleteCoupon = async (req: Request, res: Response) => {
 // Validate a coupon for a given order total
 export const validateCoupon = async (req: Request, res: Response) => {
   try {
-    const { code, orderTotal } = req.body || {};
-    if (!code) return res.status(400).json({ valid: false, message: "code required" });
-    const total = Number(orderTotal);
-    if (isNaN(total) || total < 0) return res.status(400).json({ valid: false, message: "invalid orderTotal" });
+    console.log('validateCoupon request body:', req.body);
+    const { code, orderTotal, orderAmount } = req.body || {};
+    const userId = (req as any).user?.userId || (req as any).user?.id;
+
+    if (!code) {
+      console.log('validateCoupon error: code required');
+      return res.status(400).json({ valid: false, message: "code required" });
+    }
+
+    // Accept both orderTotal and orderAmount for backward compatibility
+    const total = Number(orderTotal || orderAmount);
+    console.log('validateCoupon parsed total:', total, 'from orderTotal:', orderTotal, 'orderAmount:', orderAmount);
+
+    if (isNaN(total) || total <= 0) {
+      console.log('validateCoupon error: invalid total value', { total, orderTotal, orderAmount });
+      return res.status(400).json({ valid: false, message: "Order total must be a positive number" });
+    }
+
     const coupon = await Coupon.findOne({ where: { code: String(code).trim().toUpperCase() } });
-    if (!coupon) return res.status(404).json({ valid: false, message: "not found" });
+    if (!coupon) {
+      console.log('validateCoupon error: coupon not found', code);
+      return res.status(404).json({ valid: false, message: "Coupon code not found" });
+    }
+
+    // Get the coupon data as a plain object for easier access
+    const couponData = coupon.toJSON();
+    console.log('validateCoupon found coupon:', {
+      code: couponData.code,
+      status: couponData.status,
+      discountType: couponData.discountType,
+      value: couponData.value,
+      minOrderAmount: couponData.minOrderAmount,
+      usersUsed: couponData.usersUsed
+    });
 
     const now = new Date();
-    if ((coupon as any).status !== "active") return res.status(400).json({ valid: false, message: "inactive" });
-    if ((coupon as any).startsAt && now < (coupon as any).startsAt) return res.status(400).json({ valid: false, message: "not started" });
-    if ((coupon as any).expiresAt && now > (coupon as any).expiresAt) return res.status(400).json({ valid: false, message: "expired" });
-    if ((coupon as any).maxUses !== null && (coupon as any).maxUses !== undefined && (coupon as any).usedCount >= (coupon as any).maxUses) {
-      return res.status(400).json({ valid: false, message: "usage limit reached" });
+
+    // Check if coupon is active
+    if (couponData.status !== "active") {
+      console.log('validateCoupon error: coupon inactive', couponData.status);
+      return res.status(400).json({ valid: false, message: "Coupon is not active" });
     }
-    if ((coupon as any).minOrderAmount && total < (coupon as any).minOrderAmount) {
-      return res.status(400).json({ valid: false, message: "order total too low" });
+
+    // Check expiration and auto-deactivate if expired
+    if (couponData.expiresAt && now > new Date(couponData.expiresAt)) {
+      console.log('validateCoupon error: coupon expired', couponData.expiresAt);
+      // Auto-deactivate expired coupon
+      await coupon.update({ status: "inactive" });
+      return res.status(400).json({ valid: false, message: "This coupon has expired" });
+    }
+
+    // Check if user has already used this coupon (one-time use per user)
+    if (userId && couponData.usersUsed && couponData.usersUsed.includes(userId)) {
+      console.log('validateCoupon error: user already used coupon', { userId, code: couponData.code });
+      return res.status(400).json({ valid: false, message: "You have already used this code" });
+    }
+
+    // Check start date
+    if (couponData.startsAt && now < new Date(couponData.startsAt)) {
+      console.log('validateCoupon error: coupon not started', couponData.startsAt);
+      return res.status(400).json({ valid: false, message: "Coupon is not yet valid" });
+    }
+
+    // Check usage limits
+    if (couponData.maxUses !== null && couponData.maxUses !== undefined && couponData.usedCount >= couponData.maxUses) {
+      console.log('validateCoupon error: usage limit reached', { maxUses: couponData.maxUses, usedCount: couponData.usedCount });
+      return res.status(400).json({ valid: false, message: "Coupon usage limit reached" });
+    }
+
+    // Check minimum order amount
+    if (couponData.minOrderAmount && total < couponData.minOrderAmount) {
+      console.log('validateCoupon error: order total too low', { total, minOrderAmount: couponData.minOrderAmount });
+      return res.status(400).json({ valid: false, message: `Minimum order amount is ${couponData.minOrderAmount}` });
     }
 
     let discountAmount = 0;
-    if ((coupon as any).discountType === "percent") {
-      discountAmount = (total * (coupon as any).value) / 100;
+    if (couponData.discountType === "percent") {
+      discountAmount = (total * couponData.value) / 100;
     } else {
-      discountAmount = (coupon as any).value;
+      discountAmount = couponData.value;
     }
     if (discountAmount > total) discountAmount = total;
     const finalTotal = +(total - discountAmount).toFixed(2);
-    return res.json({ valid: true, discountAmount, finalTotal, coupon });
+
+    console.log('validateCoupon success:', { discountAmount, finalTotal });
+    return res.json({ valid: true, discountAmount, finalTotal, coupon: couponData });
   } catch (err) {
-    return res.status(500).json({ valid: false, message: "failed" });
+    console.error('validateCoupon exception:', err);
+    return res.status(500).json({ valid: false, message: "Coupon validation failed" });
   }
 };
 

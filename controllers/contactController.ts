@@ -41,15 +41,13 @@ export const submitContact = async (req: Request, res: Response) => {
   try {
     const { name, email, subject = "", message } = req.body;
     const contact = await Contact.create({ name, email, subject, message });
+    let emailSent = false;
 
-    // Send notification email to admin
+    // Send notification email to admin (best-effort)
     try {
-      const adminTo =
-        process.env.CONTACT_NOTIFICATION_TO || process.env.CONTACT_FROM_EMAIL;
+      const adminTo = process.env.CONTACT_NOTIFICATION_TO || process.env.CONTACT_FROM_EMAIL;
       if (adminTo && process.env.RESEND_API_KEY) {
-        const createdAt = new Date().toLocaleString("en-US", {
-          timeZone: "Asia/Kathmandu",
-        });
+        const createdAt = new Date().toLocaleString("en-US", { timeZone: "Asia/Kathmandu" });
         const year = new Date().getFullYear();
 
 				// Basic HTML template
@@ -85,12 +83,12 @@ export const submitContact = async (req: Request, res: Response) => {
           html,
           text: `New message from ${name} (${email})\nSubject: ${subject}\n\n${message}`,
         });
+        emailSent = true;
       }
     } catch (e) {
       console.error("contact admin email failed", (e as any).message);
     }
-
-    return res.status(201).json({ message: "submitted", contact });
+    return res.status(201).json({ message: "submitted", contact, emailSent });
   } catch (err: any) {
     return res.status(500).json({ error: "failed", details: err.message });
   }
